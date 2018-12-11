@@ -1,4 +1,4 @@
-# SFDC Enterprise Test Framework
+# SFDC Test Framework for Mid to Enterprise scale Project teams
 
 ## About
 This project provides a way to centralise test data generation and reuse to all developers to:
@@ -24,6 +24,17 @@ The framework introduces a custom setting for managing Bulk data volumes (a swit
 ### Implementation
 
 #### Classes
+Three main classes
+- c_OrgSettings
+- c_TestFactory
+- c_TestFactoryMaker
+
+And implementation examples:
+- c_TestFactory_Users
+- c_TestFactory_SalesCloud
+- c_TestFactory_zzz_SampleUnitTest
+
+Details:
 - c_OrgSettings / Contians the static reference to the Bulkification "switch" (see c_TestSetup__mtd)
 
 - c_TestFactory / Contains the context (country, locale etc., what ever is important for your org), and accessors to the business object makers. When ever these accessors are called, the results are added to memory and when "run" is called, they are committed to the database in one go.
@@ -88,12 +99,10 @@ You can create objects from the templates directly, or via the factory class. Do
 The example show how to use the factory to generate an admin user, some group level accounts, and then customer accounts who sit under their corporate group level. Nesting is an important technique required and often hard to get right in data creation:
 
 ```Apex
-    // Set the general context for the factory to use. These can be referenced by the maker classes. Very useful in multilanguage and global text contexts:
-    
-    TP_TestFactory.countryName = 'Uruguay';
-    TP_TestFactory.countryCode = 'UR';
+    // Set the general context / change the defaults:
+    c_TestFactory.LanguageLocaleKey = 'sv';
 
-    // Creating some test data...
+    // Create some test data...
 
     // Create key users
     User adminUser = (User) make(Entity.ADMIN_USER, new User(username = 'my_special_name@user.example.com', alias = 'admis'));
@@ -102,39 +111,42 @@ The example show how to use the factory to generate an admin user, some group le
     Account[] topLevelList = new Account[]{
     };
 
-    Integer owningAccounts = TP_OrgSettings.BULKIFY_TESTS ? 20 : 1;
+    Integer owningAccounts = c_OrgSettings.BULKIFY_TESTS() ? 20 : 1;
     for (Integer i; i < owningAccounts; i++) {
         Account a = (Account) make(Entity.SALES_ACCOUNT, new Account(name = 'Top Level Account ' + i));
         topLevelList.add(a);
     }
+    System.assert(topLevelList.size()==owningAccounts, 'Top level group accounts not generated');
 
-    run(); // Upsert all data queued so far. We need the top level account id's to create their child customer records...
+    // Upsert all data queued so far. Uders, then accounts. We need the top level account id's to create their child customer records...
+    run(); 
 
     // Create customers (low level accounts - with child contacts)
     for (Account topLevel : topLevelList) {
-        Integer customers = TP_OrgSettings.BULKIFY_TESTS ? 11 : 2;
+        Integer customers = c_OrgSettings.BULKIFY_TESTS() ? 11 : 2;
         for (Integer i; i < customers; i++) {
-            make(Entity.BASIC_CUSTOMER, new Account(name = 'Account ' + i, Parent = topLevel));
+            make(Entity.CUSTOMER, new Account(name = 'Account ' + i, Parent = topLevel));
         }
     }
+    System.assert((c_TestFactory.makers.get(Entity.CUSTOMER)).get().size()>0, 'Child accounts not created');
 
-    run(); // Upsert the lower level customers (accounts and contacts)
+    // Upsert the lower level customers (accounts and contacts)
+    run(); 
 ```
 
 
 #### Creating an object Directly from a template:
-If you want to side step the factory, for what ever reason, you can. Simply reference the maker class directly. You can build your own factory if you want.
+If you want to side step the factory, for what ever reason, you can. Simply reference the maker class directly. You can build your own factory if you want. Don't forget to extend the wrapping class with c_TestFactory to save you haveing to write c_TestFactory... every time
 
+Insantiate the maker directly, and then call the "make" method to get back an Account with default values:
 ```Apex
-  // Using the example class containing the SalesAccount example
-  
-  // Insantiate the maker, and then call the make method to get back an Account with default values
-  TestFactoryData mySalesAccounts = new TestFactoryData_Example.SalesAccount();
-  Account a = (Account) mySalesAccounts.make(new Account());
+  TestFactoryMaker myAccountMaker = new TestFactory_SalesCloud.SalesAccount();
+  Account a = (Account) myAccountMaker.make(new Account());
   
   System.assertEquals(a.Name, 'A Customer Account');
   System.assertEquals(mySalesAccounts.get().size(), 1); // a reference to the created account is kept in the SalesAccount object
   
+  // Create some more if you want to check!
   for (Integer i; i<10; i++)
   {
     mySalesAccounts.make(new Account(name='Another account '+i));
@@ -142,7 +154,23 @@ If you want to side step the factory, for what ever reason, you can. Simply refe
   
   System.assertEquals(mySalesAccounts.get().size(), 11); // a reference to each created account is kept in the SalesAccount object
   
+  // Lets side steps the factory compeltely and do it the old way:
   insert (Account[]) mySalesAccounts.get();
+```
+
+Or, use the factory make method, and get the same result, except you also get the factory to remember what you did ;). Again, extend the wrapping class with c_TestFactory to save keystrokes:
+```
+  make(Entity.Sales_Account, (sobject) new Account());
+  System.assertEquals(makers.get(Entity.Sales_Account).get().size(), 1); // a reference to the created account is kept in the factory object for later
+  
+  for (Integer i; i<10; i++)
+  {
+    make(Entity.Sales_Account, (sobject) new Account(name='Another account '+i));
+  }
+  
+  System.assertEquals(makers.get(Entity.Sales_Account).get().size(), 11); // a reference to each created account is kept in the SalesAccount object
+  
+  run();
 ```
 
 ## Q&A
@@ -156,3 +184,39 @@ Technically not, though it does have interfaces that madate certain footprints a
 
 ### I want to improve it and have decided to refactor the lot
 Cool, if it's a major refactor make a pull request still, I want to see this kept simple but definately haven't spent much time considering different form factors for the approach.
+
+### How can I quickly validate my Maker Classes when I write them
+Use some anonimous apex, here's an example I wrote after creating the AdminUser maker class to test it out (note there may be limits in your org on the number of Administrator licences, so watch for the org complaining when you execute this dml)
+
+Note that as this is anon apex, there is no class to extend using c_TestFactory, so you'll see that written everywhere...
+```Apex
+    // Check the org can find the profile, I'm paranoid
+    System.debug(c_OrgSettings.profileIdByName('System Administrator'));
+
+    // Set the general context / change the defaults:
+    c_TestFactory.LanguageLocaleKey = 'sv';
+
+    // Create some test data...
+
+    // Create key users
+    User adminUser = (User) c_TestFactory.make(c_TestFactory.Entity.ADMIN_USER, (sObject) new User(username = 'my_special_name@user.example.com', alias = 'admis'));
+    User adminUser1 = (User) c_TestFactory.make(c_TestFactory.Entity.ADMIN_USER, (sObject) new User(username = 'my_special_name1@user.example.com', alias = 'admi1'));
+    User adminUser2 = (User) c_TestFactory.make(c_TestFactory.Entity.ADMIN_USER, (sObject) new User(username = 'my_special_name2@user.example.com', alias = 'admi2'));
+
+    System.debug(LoggingLevel.INFO, '@@ '+ adminUser.username);
+    System.debug(LoggingLevel.INFO, '@@ '+ adminUser.email);
+    System.debug(LoggingLevel.INFO, '@@ '+ adminUser.LanguageLocaleKey);
+
+    System.debug(LoggingLevel.INFO, '@@ '+ c_TestFactory.makers.get(c_TestFactory.Entity.ADMIN_USER).get().size());
+    System.debug(LoggingLevel.INFO, '@@ '+ c_TestFactory.makers.get(c_TestFactory.Entity.ADMIN_USER).get());
+
+    System.SavePoint s = Database.setSavepoint();
+    c_TestFactory.run();
+    
+    // Check out my users inserted
+    User[] users = [select id,name from user];
+    System.debug(LoggingLevel.INFO, '@@ '+users);
+    Database.rollback(s);
+    //*/
+```
+
