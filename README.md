@@ -24,23 +24,17 @@ The framework introduces a custom setting for managing Bulk data volumes (a swit
 ### Implementation
 
 #### Classes
-- c_OrgSettings 
-Contians the static reference to the Bulkification "switch" (see c_TestSetup__mtd)
+- c_OrgSettings / Contians the static reference to the Bulkification "switch" (see c_TestSetup__mtd)
 
-- c_TestFactory
-Contains the context (country, locale etc., what ever is important for your org), and accessors to the business object makers. When ever these accessors are called, the results are added to memory and when "run" is called, they are committed to the database in one go.
+- c_TestFactory / Contains the context (country, locale etc., what ever is important for your org), and accessors to the business object makers. When ever these accessors are called, the results are added to memory and when "run" is called, they are committed to the database in one go.
 
-- c_TestFactoryMaker
-Abstract class stating what a maker class should implement so that the factory knows what it can call, and provides basic core methods
+- c_TestFactoryMaker / Abstract class stating what a maker class should implement so that the factory knows what it can call, and provides basic core methods
 
-- c_TestFactory_Users
-Example implementation of an Admin User using standard salesforce profiles
+- c_TestFactory_Users / Example implementation of an Admin User using standard salesforce profiles
 
-- c_TestFactory_SalesCloud
-Example implementation of Sales Cloud data, an Account, a Contact and a "Customer" (a customer is an Account with child Contacts)
+- c_TestFactory_SalesCloud / Example implementation of Sales Cloud data, an Account, a Contact and a "Customer" (a customer is an Account with child Contacts)
 
-- c_TestFactory_zzz_SampleUnitTest
-an example test class with pseudo code
+- c_TestFactory_zzz_SampleUnitTest / an example test class with pseudo code
 
 #### Objects
 - c__TestSetUp__mtd - Custom metadata containing the "Use Large Data Set In Test" flag
