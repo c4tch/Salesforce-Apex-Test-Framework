@@ -3,12 +3,15 @@
 ## About
 This project provides a way to centralise test data generation and reuse to all developers to:
 
-- Rapidly scaffold a data set for a unit test, re-using previous examples from other developers. Speeding up development time and enables test driven development.
-- Objects and collections (both 'atomic' or compound collections of sObjects) are provided by business case that can be re-used and customised by unit tests
-- Easily Extend to new Business OBjects, maximise re-use, and minimise merge conflicts / overwrites
-- Automate data generation in an efficient way, minimising DML cycles by grouping together similar object types and respecting the order of execution when generating data so that relationships are maintained
-- Maintain a central location to fix object definition changes that affect multiple tests. When a change is made, it's good that tests fail! And it's even better that there is one place to fix the code.
-- Allow a Bulk data volume switch to be used by unit tests. It's important to test code at bulk, but once it's been tested it also slows down the org and deployment. Instead, develoeprs can use a flag to switch from genrating massive amounts of bulk data to a small number of records.
+- Rapidly scaffold a data set for a unit test, and promote test driven development
+-- Create Objects and complex dependent collections, re-using previous examples from other developers and speed up development time, extend with minimal conflicts, maximise re-use, and minimise waste
+- Automate data generation consistently, minimising DML cycles by grouping together similar object types, and mandate the order of execution when generating data so that relationships are maintained
+- Side step the framework when necessary
+- Maintain a central location to fix object definition changes that affect multiple tests (1). 
+- Allow a Bulk data volume switch to be used by unit tests (2). 
+
+(1) When a change is made, it's good that tests fail! And it's even better that there is one place to fix the code.)
+(2) It's important to test code at bulk, but once it's been tested it also slows down the org and deployment. Instead, develoeprs can use a flag to switch from genrating massive amounts of bulk data to a small number of records.
 
 ## Why use a test framework?
 One major problem in Enterprise scale Salesforce projects is they are often riddled with bugs caused by Apex being written without clear test cases (ie. no Test Driven Development). Partly due to debugging in Apex being a very poor experience, developers often ship code that only has test coverage (the minimum 75%) that doesn't really test the intended outcome. 
