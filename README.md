@@ -1,4 +1,5 @@
 # A Scalable Salesforce Test Framework
+FAIR WARNING: This is the first commit :) Though it's based on several past projects; improvements and testing are yet to come. Give it a test-drive and let me know of issues.
 
 ## About
 This project provides a way to centralise test data generation and promote reuse to all developers so that they can:
@@ -223,10 +224,10 @@ Or, use the factory make method, and get the same result, except you also get th
 Technically not, though it does have interfaces that madate certain footprints and coding styles, it is more of a 'pattern'; however this repo can be used directly as base code and extended easily, so the answer is also 'Yes'. Other examples of frameworks in apex include Kevin O'Hara's excellent Light Weight Trigger Framework.
 
 ### I want to improve it and have decided to refactor the lot
-Cool, if it's a major refactor make a pull request still, I want to see this kept simple but definately haven't spent much time considering different form factors for the approach.
+Cool, if it's a major refactor make a pull request... My only ask is to to try keep this simple, having boiled it down from some earlier heavy structures already.
 
 ### How can I quickly validate my Maker Classes when I write them
-Use some anonimous apex, here's an example I wrote after creating the AdminUser maker class to test it out (note there may be limits in your org on the number of Administrator licences, so watch for the org complaining when you execute this dml)
+Use some anonimous apex. Here's an example I wrote after creating the AdminUser maker class to test it out (note there may be limits in your org on the number of Administrator licences, so watch for the org complaining when you execute this dml).
 
 Note that as this is anon apex, there is no class to extend using c_TestFactory, so you'll see that written everywhere...
 ```Apex
