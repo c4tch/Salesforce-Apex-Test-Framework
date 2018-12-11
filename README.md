@@ -57,7 +57,7 @@ Details:
 
 
 ### Optional Dependencies
-The framework introduces a custom setting for managing Bulk data volumes (a switch) and a common class for handling this as an overall Org Setting. I would encourage this to be tailored to suit the destination org, but not to remove it. Managing common org settings and set up from a global class allows excellent chances for DRY code that mnimises the excess Apex tends to generate.
+The framework introduces a custom metadata object for an option of when to use large data volumes in tests and a common class for handling this as an overall Org Setting. I would encourage this approach to be tailored / refactored to suit the destination org, but not to remove it. Managing common org settings and set up from a global class allows excellent chances for DRY code that mnimises the excess Apex tends to generate.
 
 - c__TestSetUp__mtd - Custom metadata containing the "Use Large Data Set In Test" flag
 
