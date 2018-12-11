@@ -22,23 +22,71 @@ The solution is to have a consistent place to manage and create this data. Basic
 The framework introduces a custom setting for managing Bulk data volumes (a switch) and a common class for handling this as an overall Org Setting. I would encourage this to be tailored to suit the destination org, but not to remove it. Managing common org settings and set up from a global class allows excellent chances for DRY code that mnimises the excess Apex tends to generate.
 
 ### Implementation
-#### Objects
-- TestSetUp__c - Custom setting containing the "Use Large Data Set In Test" flag
 
 #### Classes
-- OrgSettings - Contians the static reference to the Bulkification "switch"
-- TestFactory - Contains the context for the test (country, locale etc., what ever is important for your org), and accessors to the business object templates. When ever these accessors are called, the results are added to memory and when "run" is called, they are committed to the database in one go.
-- TestFactoryData - Interface stating what a maker class should implement so that the factory knows what it can call
-- TestFactoryData_Users - Example implementation of two Users using standard salesforce profiles
-- TestFactoryData_Sales - Example implementation of Sales data, an Account, a Contact and a "Customer" (a customer is an Account with child Contacts)
-- TestFactory_Sample_Test_Class - an example test class with pseudo code
+- c_OrgSettings 
+Contians the static reference to the Bulkification "switch" (see c_TestSetup__mtd)
+
+- c_TestFactory
+Contains the context (country, locale etc., what ever is important for your org), and accessors to the business object makers. When ever these accessors are called, the results are added to memory and when "run" is called, they are committed to the database in one go.
+
+- c_TestFactoryMaker
+Abstract class stating what a maker class should implement so that the factory knows what it can call, and provides basic core methods
+
+- c_TestFactory_Users
+Example implementation of an Admin User using standard salesforce profiles
+
+- c_TestFactory_SalesCloud
+Example implementation of Sales Cloud data, an Account, a Contact and a "Customer" (a customer is an Account with child Contacts)
+
+- c_TestFactory_zzz_SampleUnitTest
+an example test class with pseudo code
+
+#### Objects
+- c__TestSetUp__mtd - Custom metadata containing the "Use Large Data Set In Test" flag
 
 #### Setting up your data structures
-1. Install the custom setting (default values FALSE), OrgSettings (refactor later if required), and the other classes.
-2. Definte a set of classes to group data by, ex. Users, Sales, Service, Community and create a TestFactoryData_XXX class for each (use the examples provided to help)
+1. Install the custom metadata (default values FALSE), OrgSettings (refactor later if required), and the other classes.
+2. Definte a set of classes to group data by, ex. Users, Sales, Service, Community and create a c_TestFactory_XXX class for each (use the examples provided to help) that extends c_TestFactoryMaker
 3. Create your template methods by copying the sample code for your data objects that your tests will need
-4. Wire then up to the TestFactory by updating the list of business objects and map them to the constructor of each template you created (see TestFactory class comments for instructions, it's two lines, very easy). Start with one and go from there, it's quite easy.
+4. Wire them up to the TestFactory by updating the "Entity" list with each object and the "makers" to map them to the constructor of each maker class you created.
 5. Write your tests, creating data in the TestSetup, see the example test class provided which guides you with comments on the recommended style.
+
+Tip to save time when creating a new Entity / "business object" - Create the maker class first, then run the following code (udpated to your new references) in Anon apex to check it's creating the default values correctly:
+
+```Apex
+    // note that if the test class extends c_TestFactory, we don't need to put c_TestFactory. everywhere, making the code much neater
+
+    // Set the general context / change the defaults:
+    c_TestFactory.LanguageLocaleKey = 'sv';
+
+    // Check my new maker class to build an admin user...
+
+    // Create admin user
+    User adminUser = (User) c_TestFactory.make(c_TestFactory.Entity.ADMIN_USER, (sObject) new User(username = 'my_special_name@user.example.com', alias = 'ad1'));
+
+    // Check out the result of the maker, it is a simple one, so I should see my custom values added as well as defaults like ProfileId
+    System.debug(LoggingLevel.INFO, '@@ '+ adminUser.username);
+    System.debug(LoggingLevel.INFO, '@@ '+ adminUser.email);
+    System.debug(LoggingLevel.INFO, '@@ '+ adminUser.LanguageLocaleKey);
+    System.debug(LoggingLevel.INFO, '@@ '+ adminUser.ProfileId);
+
+    // Create two more using the factory
+    c_TestFactory.make(c_TestFactory.Entity.ADMIN_USER, (sObject) new User(username = 'my_second_name@user.example.com', alias = 'ad2'));
+    c_TestFactory.make(c_TestFactory.Entity.ADMIN_USER, (sObject) new User(username = 'my_third_name@user.example.com', alias = 'ad3'));
+
+    // Check out the full list the factory will referr to when it inserts the records
+    System.debug(LoggingLevel.INFO, '@@ '+ c_TestFactory.makers.get(c_TestFactory.Entity.ADMIN_USER).get().size());
+    System.debug(LoggingLevel.INFO, '@@ '+ c_TestFactory.makers.get(c_TestFactory.Entity.ADMIN_USER).get());
+
+    // Run the factory with a save point and rollback so I don't corrupt the good data in my org
+    System.SavePoint s = Database.setSavepoint();
+    c_TestFactory.run();
+    User[] users = [select id,name from user];
+    System.debug(LoggingLevel.INFO, '@@ '+users);
+    Database.rollback(s);
+    //*/
+```
 
 #### Tour the example
 You can create objects from the templates directly, or via the factory class. Doing it via the TestFactory means you can automate the generation of the data.
