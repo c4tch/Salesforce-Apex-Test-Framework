@@ -23,10 +23,10 @@ The solution is to have a consistent place to manage and create this data. Basic
 The framework introduces a custom setting for managing Bulk data volumes (a switch) and a common class for handling this as an overall Org Setting. I would encourage this to be tailored to suit the destination org, but not to remove it. Managing common org settings and set up from a global class allows excellent chances for DRY code that mnimises the excess Apex tends to generate.
 
 ### Implementation
-Objects
+#### Objects
 - TestSetUp__c - Custom setting containing the "Use Large Data Set In Test" flag
 
-Classes
+#### Classes
 - OrgSettings - Contians the static reference to the Bulkification "switch"
 - TestFactory - Contains the context for the test (country, locale etc., what ever is important for your org), and accessors to the business object templates. When ever these accessors are called, the results are added to memory and when "run" is called, they are committed to the database in one go.
 - TestFactoryData - Interface stating what a maker class should implement so that the factory knows what it can call
@@ -34,16 +34,17 @@ Classes
 - TestFactoryData_Sales - Example implementation of Sales data, an Account, a Contact and a "Customer" (a customer is an Account with child Contacts)
 - TestFactory_Sample_Test_Class - an example test class with pseudo code
 
+#### Setting up your data structures
 1. Install the custom setting (default values FALSE), OrgSettings (refactor later if required), and the other classes.
 2. Definte a set of classes to group data by, ex. Users, Sales, Service, Community and create a TestFactoryData_XXX class for each (use the examples provided to help)
 3. Create your template methods by copying the sample code for your data objects that your tests will need
 4. Wire then up to the TestFactory by updating the list of business objects and map them to the constructor of each template you created (see TestFactory class comments for instructions, it's two lines, very easy). Start with one and go from there, it's quite easy.
 5. Write your tests, creating data in the TestSetup, see the example test class provided which guides you with comments on the recommended style.
 
+#### Tour the example
 You can create objects from the templates directly, or via the factory class. Doing it via the TestFactory means you can automate the generation of the data.
 
-#### Tour the example
-Using the facotry to generate an admin user, some group level accounts, and then customer accounts who sit under their corporate group level:
+The example show how to use the factory to generate an admin user, some group level accounts, and then customer accounts who sit under their corporate group level. Nesting is an important technique required and often hard to get right in data creation:
 
 ```Apex
     // Set the general context for the factory to use. These can be referenced by the maker classes. Very useful in multilanguage and global text contexts:
