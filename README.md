@@ -60,53 +60,72 @@ The framework introduces a custom setting for managing Bulk data volumes (a swit
 
 - c__TestSetUp__mtd - Custom metadata containing the "Use Large Data Set In Test" flag
 
-#### Setting up your data structures
-1. Install the custom metadata (default values FALSE), OrgSettings (refactor later if required), and the other classes.
-2. Definte a set of classes to group data by, ex. Users, Sales, Service, Community and create a c_TestFactory_XXX class for each (use the examples provided to help) that extends c_TestFactoryMaker
-3. Create your template methods by copying the sample code for your data objects that your tests will need
-4. Wire them up to the TestFactory by updating the "Entity" list with each object and the "makers" to map them to the constructor of each maker class you created.
-5. Write your tests, creating data in the TestSetup, see the example test class provided which guides you with comments on the recommended style.
+## Create your own templates
+Creating a default object and allowing it to be populated by your own values in a unit test is rediculously easy.
 
-Tip to save time when creating a new Entity / "business object" - Create the maker class first, then run the following code (udpated to your new references) in Anon apex to check it's creating the default values correctly:
-
+As it's most basic, this is it:
 ```Apex
-    // note that if the test class extends c_TestFactory, we don't need to put c_TestFactory. everywhere, making the code much neater
+public class c_TestFactory_SalesCloud {
+    public class SalesAccount extends c_TestFactoryMaker {
 
-    // Set the general context / change the defaults:
-    c_TestFactory.LanguageLocaleKey = 'sv';
+        // Mandatory minimum default set up, returns an sObject, in this case a default Account for the Sales Cloud
+        sObject defaults() {
 
-    // Check my new maker class to build an admin user...
+            // Default object
+            Account rec = new Account();
 
-    // Create admin user
-    User adminUser = (User) c_TestFactory.make(c_TestFactory.Entity.ADMIN_USER, (sObject) new User(username = 'my_special_name@user.example.com', alias = 'ad1'));
+            // Default values
+            rec.Name = 'A Customer Account';
+            rec.ShippingStreet = 'Nr 1 Some Street';
+            rec.ShippingPostalCode = '11111';
+            rec.ShippingCity = 'A City';
+            rec.ShippingCountry = countryName;
 
-    // Check out the result of the maker, it is a simple one, so I should see my custom values added as well as defaults like ProfileId
-    System.debug(LoggingLevel.INFO, '@@ '+ adminUser.username);
-    System.debug(LoggingLevel.INFO, '@@ '+ adminUser.email);
-    System.debug(LoggingLevel.INFO, '@@ '+ adminUser.LanguageLocaleKey);
-    System.debug(LoggingLevel.INFO, '@@ '+ adminUser.ProfileId);
+            return (sObject) rec;
+        }
+    }
+}
+```
+The above declares a default set of values for a Sales Account. It's wrapped in a class to collect several of these together "SalesCloud"
 
-    // Create two more using the factory
-    c_TestFactory.make(c_TestFactory.Entity.ADMIN_USER, (sObject) new User(username = 'my_second_name@user.example.com', alias = 'ad2'));
-    c_TestFactory.make(c_TestFactory.Entity.ADMIN_USER, (sObject) new User(username = 'my_third_name@user.example.com', alias = 'ad3'));
+This is then hooked up to the factory by adding the name to the "Entity" enum, and a reference to the "makers" map 
+```Apex
+public virtual class c_TestFactory {
+    ...
+    public enum Entity {
+        ...
+        ,SALES_ACCOUNT
+        ...
+    }
+    
+    public static final Map<Entity, c_TestFactoryMaker> makers = new Map<Entity, c_TestFactoryMaker> {
+            //...
+            ,Entity.SALES_ACCOUNT => new c_TestFactory_SalesCloud.SalesAccount()
+            //...
+    };
+    ...
+}
+```
+(... denotes code you don't have to care about):
 
-    // Check out the full list the factory will referr to when it inserts the records
-    System.debug(LoggingLevel.INFO, '@@ '+ c_TestFactory.makers.get(c_TestFactory.Entity.ADMIN_USER).get().size());
-    System.debug(LoggingLevel.INFO, '@@ '+ c_TestFactory.makers.get(c_TestFactory.Entity.ADMIN_USER).get());
-
-    // Run the factory with a save point and rollback so I don't corrupt the good data in my org
-    System.SavePoint s = Database.setSavepoint();
-    c_TestFactory.run();
-    User[] users = [select id,name from user];
-    System.debug(LoggingLevel.INFO, '@@ '+users);
-    Database.rollback(s);
-    //*/
+When a developer wants a Sales Account now they can use the factory. At the most basic this is two lines:
+```Apex
+public class myUnitTest extends c_TestFactory {
+    make(Entity.SALES_ACCOUNT, (sObject) new Account(name = 'Roger Rabbit ACME Co.'));
+    run(); //runs the DML
+}
 ```
 
-#### Tour the example
-You can create objects from the templates directly, or via the factory class. Doing it via the TestFactory means you can automate the generation of the data.
+For a tip on how to quickly scaffold and test your maker class, see the Q&A sectoin at the end for some useful anon apex tips.
 
-The example show how to use the factory to generate an admin user, some group level accounts, and then customer accounts who sit under their corporate group level. Nesting is an important technique required and often hard to get right in data creation:
+## Using the factory in a Unit Test
+
+#### Tour the example
+After setting up the code and custom meta data in an org, there is a Sample unit test showing the various ways you can consume the factory.
+
+You can create objects from the factory, or directly from the maker classes. Doing it via the factory means you can automate the generation of the data.
+
+The example tours the sample unit test so see how to use the factory to generate an admin user, some group level accounts, and then nested customer accounts who sit under their corporate group level. Nesting is an important technique required and often hard to get right in data creation:
 
 ```Apex
     // Set the general context / change the defaults:
@@ -144,11 +163,18 @@ The example show how to use the factory to generate an admin user, some group le
     run(); 
 ```
 
-
 #### Creating an object Directly from a template:
-If you want to side step the factory, for what ever reason, you can. Simply reference the maker class directly. You can build your own factory if you want. Don't forget to extend the wrapping class with c_TestFactory to save you haveing to write c_TestFactory... every time
+If you want to side step the factory, for what ever reason, you can. Simply reference the maker class directly. You can build your own factory if you want (though ... really...?). Don't forget to extend the wrapping class with c_TestFactory to save you haveing to write c_TestFactory. every time you reference something.
 
-Insantiate the maker directly, and then call the "make" method to get back an Account with default values:
+Esencially it's only two lines again to reference a maker:
+
+```Apex
+  TestFactoryMaker myAccountMaker = new TestFactory_SalesCloud.SalesAccount();
+  Account a = (Account) myAccountMaker.make(new Account());
+```
+
+The below example shows how this can be used to demonstrate how maker classes build an in memory list when they are called. This is the main reason that the factory knows what has been built, and is the 'secret' to the DML automation:
+
 ```Apex
   TestFactoryMaker myAccountMaker = new TestFactory_SalesCloud.SalesAccount();
   Account a = (Account) myAccountMaker.make(new Account());
