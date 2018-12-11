@@ -1,4 +1,4 @@
-# A Scalable Salesforce Test Framework
+# A Scalable Salesforce Apex Unit Test Framework
 FAIR WARNING: This is the first commit :) Though it's based on several past projects; improvements and testing are yet to come. Give it a test-drive and let me know of issues.
 
 ## About
