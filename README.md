@@ -4,11 +4,10 @@
 This project provides a way to centralise test data generation and reuse to all developers to:
 
 - Rapidly scaffold a data set for a unit test, re-using previous examples from other developers. Speeding up development time and enables test driven development.
-- Default objects (both 'atomic' or compound collections of sObjects) are provided by business case that can be re-used and customised by unit tests
-- Represent the same sObject with different business cases ex. a Sales Account versus a Corporate Account (same sObject, different business purpose, so different data needs)
-- Easily Extend to new Business OBjects, maximise re-use, and minimise merge conflicts
+- Objects and collections (both 'atomic' or compound collections of sObjects) are provided by business case that can be re-used and customised by unit tests
+- Easily Extend to new Business OBjects, maximise re-use, and minimise merge conflicts / overwrites
 - Automate data generation in an efficient way, minimising DML cycles by grouping together similar object types and respecting the order of execution when generating data so that relationships are maintained
-- Provide a central location to fix object definition changes that affect multiple tests. When a change is made, it's good that tests fail! And it's even better that there is one place to fix the code.
+- Maintain a central location to fix object definition changes that affect multiple tests. When a change is made, it's good that tests fail! And it's even better that there is one place to fix the code.
 - Allow a Bulk data volume switch to be used by unit tests. It's important to test code at bulk, but once it's been tested it also slows down the org and deployment. Instead, develoeprs can use a flag to switch from genrating massive amounts of bulk data to a small number of records.
 
 ## Why use a test framework?
@@ -106,7 +105,9 @@ If you want to side step the factory, for what ever reason, you can. Simply refe
 
 ## Q&A
 ### Ideas for improvement
-One part that this project overlaps to is the OrgSettings area, and automation control for example (ie blocking and working with triggers, validation rules and process buider at scale). It could also overlap to error handling and reporting too, and include the new EventBus delivery methods as well as DML. Now that would be cool.
+- Error handling and reporting of failures to enable trend analysis of common development / SIT problems
+- Include the new EventBus delivery methods as well as DML. Now that would be cool.
+- This project overlaps to the OrgSettings area and automation control for example (ie blocking and working with triggers, validation rules and process buider at scale), it might be desirable to abstract these away to make the framework more contained.
 
 ### Is it really a framework?
 Technically not, though it does have interfaces that madate certain footprints and coding styles, it is more of a 'pattern'; however this repo can be used directly as base code and extended easily, so the answer is also 'Yes'. Other examples of frameworks in apex include Kevin O'Hara's excellent Light Weight Trigger Framework.
