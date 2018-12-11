@@ -1,14 +1,14 @@
-# SFDC Test Framework for Mid to Enterprise scale Project teams
+# A Scalable Salesforce Test Framework
 
 ## About
-This project provides a way to centralise test data generation and reuse to all developers to:
+This project provides a way to centralise test data generation and promote reuse to all developers so that they can:
 
-- Rapidly scaffold a data set for a unit test, and promote test driven development
--- Create Objects and complex dependent collections, re-using previous examples from other developers and speed up development time, extend with minimal conflicts, maximise re-use, and minimise waste
+- Rapidly scaffold a unit test, and promote test driven development
+- Create Objects and complex dependent collections, re-using previous examples from other developers and speed up development time, extend with minimal conflicts, maximise re-use, and minimise waste
 - Automate data generation consistently, minimising DML cycles by grouping together similar object types, and mandate the order of execution when generating data so that relationships are maintained
-- Side step the framework when necessary
-- Maintain a central location to fix object definition changes that affect multiple tests (1). 
-- Allow a Bulk data volume switch to be used by unit tests (2). 
+- Side step the framework when necessary in a consistent way
+- Maintain a central location to fix object definition changes that affect multiple tests (1) - critical in SIT testing
+- Allow a Bulk data volume switch to be used by unit tests (2) - critical when it comes to production deploys
 
 (1) When a change is made, it's good that tests fail! And it's even better that there is one place to fix the code.)
 (2) It's important to test code at bulk, but once it's been tested it also slows down the org and deployment. Instead, develoeprs can use a flag to switch from genrating massive amounts of bulk data to a small number of records.
