@@ -18,6 +18,10 @@ Why, in the modern world is it like this? Well, in part it is because generating
 The solution is to have a consistent place to manage and create this data. Basic approaches used by project developers include providing a set of methods that generate common data structures such as users, or Accounts - which works fine for simple enviornments. However dependencies and DML limits soon become an issue, and developers being indepependant minds tend to create multiple versions of the same method - eventually causing the same issue.
 
 ## In Use
+The framework works by providing a factory that allows developers to create buiness objects based on use cases for their unit tests. They are built out using default templates that can be tailored to the unit test being written, and then executed with efficient use of DML. 
+
+Developers can write a business object once and reuse it throughout the org, extending it and creating variants for projects over time but without creating different footprints for every project and code initiative, allowing for refactoring and efficient use of DML in tests.
+
 ### Optional Dependencies
 The framework introduces a custom setting for managing Bulk data volumes (a switch) and a common class for handling this as an overall Org Setting. I would encourage this to be tailored to suit the destination org, but not to remove it. Managing common org settings and set up from a global class allows excellent chances for DRY code that mnimises the excess Apex tends to generate.
 
