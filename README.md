@@ -60,7 +60,9 @@ The framework introduces a custom setting for managing Bulk data volumes (a swit
 
 - c__TestSetUp__mtd - Custom metadata containing the "Use Large Data Set In Test" flag
 
-## Create your own templates
+## Create your own 'maker' templates
+Objects are built using 'maker' classes, simple classes extending the c_TestFactoryMaker. This allows them to be hooked into the factory in a predictable way.
+
 Creating a default object and allowing it to be populated by your own values in a unit test is rediculously easy.
 
 As it's most basic, this is it:
@@ -106,7 +108,9 @@ public virtual class c_TestFactory {
     ...
 }
 ```
-(... denotes code you don't have to care about):
+(... denotes code you don't have to care about)
+
+The Sales Account object is now available for use in all unit tests extending the factory class.
 
 When a developer wants a Sales Account now they can use the factory. At the most basic this is two lines:
 ```Apex
