@@ -10,23 +10,20 @@ This project provides a way to centralise test data generation and promote reuse
 - Maintain a central location to fix object definition changes that affect multiple tests (1) - critical in SIT testing
 - Allow a Bulk data volume switch to be used by unit tests (2) - critical when it comes to production deploys
 
-(1) When a change is made, it's good that tests fail! And it's even better that there is one place to fix the code.)
+(1) When a change is made, it's good that tests fail! And it's even better that there is one place to fix the code.
 (2) It's important to test code at bulk, but once it's been tested it also slows down the org and deployment. Instead, develoeprs can use a flag to switch from genrating massive amounts of bulk data to a small number of records.
 
 ## Why use a test framework?
-One major problem in Enterprise scale Salesforce projects is they are often riddled with bugs caused by Apex being written without clear test cases (ie. no Test Driven Development). Partly due to debugging in Apex being a very poor experience, developers often ship code that only has test coverage (the minimum 75%) that doesn't really test the intended outcome. 
+One major problem in Enterprise scale Salesforce projects is they are often riddled with bugs caused by Apex being written without clear test cases (ie. no Test Driven Development). Partly due to debugging in Apex being a very poor experience, but also due to the complex setup of data and hoops they have to jump through just to get to the state they are testing. In the end, developers often ship code that only has test coverage (the minimum 75%) that doesn't really test the intended outcome. 
 
-Why, in the modern world is it like this? Well, in part it is because generating data for testing a data driven platform is a massive pain, especially in an agile project environment where the data surfaces of sObjects, security, profiles and users rapidly changes. One change can cause spaghetti, so developers keep things simple, which unfortunately results in problems later down the line when they also find out their code doesn't merge or work in real life.
+Generating data for testing a data driven platform is a massive pain, especially in an agile project environment where the data surfaces of sObjects, security, profiles and users rapidly change. One change can cause spaghetti, so as developers try to keep things simple, which results in problems later down the line when they find out their code doesn't merge or work in real life situations. Data in tests is vital.
 
-The solution is to have a consistent place to manage and create this data. Basic approaches used by project developers include providing a set of methods that generate common data structures such as users, or Accounts - which works fine for simple enviornments. However dependencies and DML limits soon become an issue, and developers being indepependant minds tend to create multiple versions of the same method - eventually causing the same issue.
+Basic approaches used by project developers include providing a set of methods that generate common data structures such as users, or Accounts - which works fine for simple enviornments. However as projects grow, and dependencies and DML limits become an issue, and developers need a consistent way to work together to save time and generate predictable data to work with in testing - test driven development, especially, demands this.
 
 ## In Use
-The framework works by providing a factory that allows developers to create buiness objects based on use cases for their unit tests. They are built out using default templates that can be tailored to the unit test being written, and then executed with efficient use of DML. 
+The framework provides a factory that allows developers to create buiness objects on the fly. These are created based on use cases providing templates that can be tailored to the unit test being written, and then executed with efficient use of DML. 
 
-Developers can write a business object once and reuse it throughout the org, extending it and creating variants for projects over time but without creating different footprints for every project and code initiative, allowing for refactoring and efficient use of DML in tests.
-
-### Optional Dependencies
-The framework introduces a custom setting for managing Bulk data volumes (a switch) and a common class for handling this as an overall Org Setting. I would encourage this to be tailored to suit the destination org, but not to remove it. Managing common org settings and set up from a global class allows excellent chances for DRY code that mnimises the excess Apex tends to generate.
+This avoids creating different footprints for every project and code initiative, allowing for refactoring and efficient use of DML in tests.
 
 ### Implementation
 
@@ -36,9 +33,12 @@ Three main classes
 - c_TestFactory
 - c_TestFactoryMaker
 
-And implementation examples:
+Maker classes demoing the factory:
 - c_TestFactory_Users
 - c_TestFactory_SalesCloud
+
+
+And implementation in a sample unit test:
 - c_TestFactory_zzz_SampleUnitTest
 
 Details:
@@ -54,7 +54,10 @@ Details:
 
 - c_TestFactory_zzz_SampleUnitTest / an example test class with pseudo code
 
-#### Objects
+
+### Optional Dependencies
+The framework introduces a custom setting for managing Bulk data volumes (a switch) and a common class for handling this as an overall Org Setting. I would encourage this to be tailored to suit the destination org, but not to remove it. Managing common org settings and set up from a global class allows excellent chances for DRY code that mnimises the excess Apex tends to generate.
+
 - c__TestSetUp__mtd - Custom metadata containing the "Use Large Data Set In Test" flag
 
 #### Setting up your data structures
