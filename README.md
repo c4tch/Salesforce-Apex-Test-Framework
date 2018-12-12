@@ -92,8 +92,8 @@ public class c_TestFactory_zzz_SampleUnitTest extends c_TestFactory {
 *Example showing the make called from a unit test. When ever the "make" methods are called, the results are added to the test factory's working memory, and when "run" is called they are committed to the database in one go in a given order. Note the Class wrapping the unit test extends c_TestFactory*
 
 3) Register new objects
--Accessors to the business object makers are listed in the Factory class. 
--Objects are built using 'maker' classes, simple classes extending c_TestFactoryMaker. The TestFactory has an Entity enum, which represents the order in which the objects will be inserted to the database, and also friendly labels to describe the object being created.
+- Accessors to the business object makers are listed in the Factory class.
+- Objects are built using 'maker' classes, simple classes extending c_TestFactoryMaker. The TestFactory has an Entity enum, which represents the order in which the objects will be inserted to the database, and also friendly labels to describe the object being created.
 
 ```Apex
 public virtual class c_TestFactory ...
