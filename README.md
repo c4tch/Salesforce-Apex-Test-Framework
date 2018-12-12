@@ -53,9 +53,9 @@ A demo implementation in a sample unit test. Note that the unit test only shows 
 An OrgSettings class*
 - c_OrgSettings
 
-* \*Contians helper methods to look up ProfileId's etc and cache then and a reference to the Use Large Data in Tests option "BULKIFY_TESTS()" (see c_TestSetup__mtd). This is technically an optional class. If you choose to remove it, then it affects the SampleUnitTest where I check the BULKIFY_TESTS option, and the Users class where i use the ProfileID lookup method:.
+\*Contians helper methods. Technically this class can be removed with some minor edits, but it's a useful pattern to use. See below.
 
-Details:
+### Class Details:
 
 #### c_TestFactory 
 Does three jobs. 
@@ -110,10 +110,10 @@ public virtual class c_TestFactory ...
     ...
 ```
 
-### c_TestFactoryMaker
+#### c_TestFactoryMaker
 Abstract class stating what a maker class should implement so that the factory knows what it can call, and provides basic core methods
 
-### c_TestFactory_Users and c_TestFactory_SalesCloud
+#### c_TestFactory_Users and c_TestFactory_SalesCloud
 Two example implementations of creating users and Sales Cloud objects. Objects are built using 'maker' classes, simple classes extending c_TestFactoryMaker. As their most simple (and common use), a maker class only has to provide the default values for a basic sObject. The following snipped shows how a SalesAccount is created.
 
 ```Apex
@@ -139,15 +139,17 @@ public class c_TestFactory_SalesCloud {
 }
 ```
 
-### c_TestFactory_zzz_SampleUnitTest
+#### c_TestFactory_zzz_SampleUnitTest
 An example test class with pseudo code.
-
 
 ### c_OrgSettings (and custom meta data c__TestSetUp__mtd) - Optional Dependency
 The framework introduces a common OrgSettings class where lookups to configuration type data can be made from one place.
-This looks up ProfileId's for example and caches them for the transaction length. A Custom metadata object c__TestSetUp__mtd for a "Use Large Data Set In Test" flag, that unit tests can check to decide when to use large data volumes in tests or not. 
+- A look up for ProfileId's is provided for example. Results are cached for the length of the transaction. 
+- A "Use Large Data Set In Test" flag. Using a custom metadata object c__TestSetUp__mtd unit tests can check to decide when to use large data volumes in tests or not. 
 
 I would encourage this approach to be tailored / refactored to suit the destination org, but not to remove it. Managing common org settings and set up from a global class allows excellent chances for DRY code that mnimises the excess Apex tends to generate.
+
+This is technically an optional class. If you choose to remove it, then it affects the SampleUnitTest where we check the BULKIFY_TESTS() option, and the \_Users class where i use the ProfileID lookup method:.
 
 
 ## Create your own 'maker' templates
