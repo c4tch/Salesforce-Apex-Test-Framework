@@ -143,7 +143,7 @@ public class c_TestFactory_SalesCloud {
 #### c_TestFactory_zzz_SampleUnitTest
 An example test class with pseudo code.
 
-### c_OrgSettings (and custom meta data c__TestSetUp__mtd) - Optional Dependency
+#### c_OrgSettings (and custom meta data c__TestSetUp__mtd) - Optional Dependency
 The framework introduces a common OrgSettings class where lookups to configuration type data can be made from one place.
 - A look up for ProfileId's is provided for example. Results are cached for the length of the transaction. 
 - A "Use Large Data Set In Test" flag. Using a custom metadata object c__TestSetUp__mtd unit tests can check to decide when to use large data volumes in tests or not. 
@@ -153,8 +153,8 @@ I would encourage this approach to be tailored / refactored to suit the destinat
 This is technically an optional class. If you choose to remove it, then it affects the SampleUnitTest where we check the BULKIFY_TESTS() option, and the \_Users class where i use the ProfileID lookup method:.
 
 
-## Create your own 'maker' templates
-Creating a default object and allowing it to be populated by your own values in a unit test is rediculously easy. The two example classes included in this project for *Users* and *SalesCloud*. The walkthrough of the samples above explains how these are built.
+## Create your own 'maker' classes
+Creating an object and allowing it to be populated by your own values in a unit test is rediculously easy. The two example classes included in this project for *Users* and *SalesCloud*. The walkthrough of the samples above explains how these are built.
 
 i) Create your maker class inherriting from c_TestFactoryMaker. Use a sensible naming convention like c_TestFactory_SomeName
 ii) Register the maker class in the TestFactory Entity enum and "makers" map
