@@ -42,9 +42,12 @@ Two main classes, the main factory class, and an abstract Maker which is used as
 - c_TestFactory
 - c_TestFactoryMaker
 
-Two Maker classes are provided for creating Users and Sales Cloud objects. These can be rewritten / replaced as needed:
-- c_TestFactory_Users
-- c_TestFactory_SalesCloud
+Some example classes have been provided to demonstrate how to build differnt kinds of business objects, or Entities, for use in Tests.These can be rewritten / replaced as needed:
+- c_TestFactory_Users (like business users)
+- c_TestFactory_CoreUsers (like sys admin)
+- c_TestFactory_SalesCloud (accounts, contacts, optys, customers with contacts etc.)
+
+The next sections will walk through the function of the factory classes and explain how the framework is used.
 
 ## c_TestFactory 
 Does three jobs:
@@ -52,7 +55,6 @@ Does three jobs:
 2. Keep a register of the Entities used to generate test data
 3. Allow a test to generate sObjects from these entities
 4. Insert the generated objects, grouping DML and automatically building relationships between sObjects (this is the clever bit)
-
 
 #### 1. Test Context
 Good tests run in a consistent context, ie predictable values such as language, country, email encoding formats, data volumes. This ensures that you are able to vary the context of the tests being run in a predictable way, both as a developer and a tester.
