@@ -1,39 +1,20 @@
 /**
-* File Name   : c_TestFactory_SalesCloud
-* Description : TestFactory Framework, provides templates and automation of data for use in unit tests
-* Modification Log
-* ============================================================================
-* Ver   Date        Author                  Modification
-*-----------------------------------------------------------------------------
-* 0.1   7-12-2018   Matt Evans              Draft
-*
-* The class shows how to use the test framework by creating atomic and composite objects for the Sales Cloud.
-*
-* Each Business Object is registed in the TestFactory's "Entity" ENUM with a suitable label, and the label is then mapped to the Maker class in the "makers" map like this:
-*
-* public enum Entity {
-*   //...The order is important, as it defines the order of the DML
-*   ,SALES_ACCOUNT
-*   ,SALES_CONTACT
-*   ,CUSTOMER
-*   //...Add more here as you go...
-* }
-*
-* public static final Map<Entity, c_TestFactory> makers = new Map<Entity, c_TestFactoryData>{
-*   //...Map your Entity labels to their maker class here...
-*   ,Entity.SALES_ACCOUNT => new c_TestFactory_SalesCloud.SalesAccount()
-*   ,Entity.SALES_CONTACT  => new c_TestFactory_SalesCloud.SalesContact()
-*   ,Entity.CUSTOMER  => new c_TestFactory_SalesCloud.Customer()
-*   //...Add more here as you go...
-* }
+ @Name: LMS_TestFactory_SalesCloud.cls
+ @TestedBy: Implementing in a test class
+ @Description:
+  TestFactory for Sales Cloud objects for the LMS project namespace
+ @History
+  VERSION     AUTHOR           DATE            DETAIL
+  1.0         Matt Evans       7/12/2018       Draft
+  1.1         Matt Evans       9/9/2019        Fixed reflection issues in factory classes, removed fix and simplified the Customer template 
 */
 
 public class c_TestFactory_SalesCloud {
-
-    /*** Atomic Data; ex. a single User, Account, Contact *** /
+    /**
+    * Atomic Data; ex. an Account, Contact 
+    **/
 
     /*** Sales Account ***/
-
     public class SalesAccount extends c_TestFactoryMaker {
 
         // Mandatory minimum default set up, returns an sObject, in this case a default Account for the Sales Cloud
@@ -47,14 +28,14 @@ public class c_TestFactory_SalesCloud {
             rec.ShippingStreet = 'Nr 1 Some Street';
             rec.ShippingPostalCode = '11111';
             rec.ShippingCity = 'A City';
-            rec.ShippingCountry = countryName;
+            rec.ShippingCountry = COUNTRY_NAME;
 
             return (sObject) rec;
         }
 
     }
 
-
+    /*** Sales Contact ***/
     public class SalesContact extends c_TestFactoryMaker {
 
         // Mandatory minimum default set up, returns an sObject, in this case a default Contact for the Sales Cloud
@@ -69,47 +50,59 @@ public class c_TestFactory_SalesCloud {
             return (sObject) rec;
         }
     }
+    
+    /*** Sales Opty ***/
+    public class SalesOpportunity extends c_TestFactoryMaker {
 
+        // Mandatory minimum default set up, returns an sObject, in this case a default OPPORTUNITY for the Sales Cloud
+        sObject defaults() {
+            // Default object
+            Opportunity rec = new Opportunity();
 
+            rec.Name = 'SafePoint Oppty';
+            rec.StageName  = 'Analyse';
+            rec.CloseDate = System.today() + 90;
+            
+            return (sObject) rec;
+        }
+    }
+
+    /**
+    * Business Objects: Complete Customer... etc.
+    **/
     public class Customer extends c_TestFactoryMaker {
 
-        // Mandatory minimum default set up, returns null as the Customer is more complex than a single sObject
+        // Mandatory minimum default set up, return null for complex objects
         sObject defaults() {
             return null;
         }
-
+        
         // Custom override for the maker
         public override sObject make(sObject sourceObject) {
-            System.debug(LoggingLevel.debug, '@@ Custom maker method for a composite object @@');
-
             // Create an account
-            c_TestFactoryMaker accountMaker = new SalesAccount();
-            sObject defaultAccount = accountMaker.make(new Account(name = 'Basic Customer'));
+            Account customerAccount = (Account) c_Testfactory.make(Entity.SALES_ACCOUNT, (Account)sourceObject);
 
-            // Merge default values into passed object
-            sourceObject = mergeFields( defaultAccount, sourceObject);
+            // We want some unique name for the child component emails etc. so strip the account name
+            String cleanNameForRelatedRecords = customerAccount.name.replaceAll('[^a-zA-Z0-9]','');
 
-            // Append the account to the list of objects created by the method
-            add(sourceObject);
-
-            // Create contacts for the account
-            Integer contactsToCreate = 2;// TODO: c_OrgSettings.BULKIFY_TESTS ? 201 : 2;
-
+            // Create contacts for the account and add them to the factory
+            Integer contactsToCreate = 2;
             for (Integer i = 0; i<contactsToCreate; i++)
             {
-                c_TestFactoryMaker contactMaker = new SalesContact();
-                sObject aContact = contactMaker.make(new Contact(Account = (Account) sourceObject, FirstName = 'Example', LastName = 'Contact '+i, Email= 'samplecustomer_'+i+'@donotsend.example.com'));
-
-                // Append the Contact to the list of objects created by the method
-                add(aContact);
+                String contactFirstName = customerAccount.name;
+                String contactUniqueEmail = cleanNameForRelatedRecords+'_'+i+'@donotsend.example.com';
+                c_Testfactory.make(Entity.SALES_CONTACT, new Contact(Account = customerAccount, FirstName = contactFirstName, LastName = 'Contact '+i, Email = contactUniqueEmail));
             }
 
-            // Add others... Cases or whatever make up a customer
+            // Create opportunties for the account and add them to the factory
+            Integer opptysToCreate = 2;
+            for (Integer i = 0; i<opptysToCreate; i++)
+            {
+                c_Testfactory.make(Entity.SALES_OPPORTUNITY, new Opportunity(Account = customerAccount, Name = customerAccount.name +' Test Oppty '+i));
+            }
 
-            // Return the passed Account object
-
-            return sourceObject;
+            // Return the passed Account object as a root reference
+            return (sObject) customerAccount;
         }
     }
-//*/
 }

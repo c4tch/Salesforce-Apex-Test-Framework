@@ -1,102 +1,89 @@
 /**
-* File Name   : c_TestFactory
-* Description : TestFactory Framework, generates test data on demand
-* Modification Log
-* ============================================================================
-* Ver   Date        Author                  Modification
-*-----------------------------------------------------------------------------
-* 0.1   7-12-2018   Matt Evans              Draft - A generic context and a basic factory automation for object creation
-*
-* Instructions
-* ============================================================================
-* To create a new object,
-* i) add the business name to the "Entity" enum
-* ii) create a new 'maker' Class inheriting from c_TestFactoryMaker
-* iii) and add a reference to the new class to the map 'makers' below.
-*
-* Examples:
-* See c_TestFactory_Sales for an illustraion of how to create an object definition for Sales Cloud
-* and c_TestFactory_ExampleUnitTest to see how to use it
-* 
-*/
+ @Name: c_TestFactory.cls
+ @TestedBy: Implementing in a test class
+ @Description: TestFactory Framework base class; generates test data on demand
+  1. Registry of Business Objects (EDITABLE!)
+  2. Maker - Dynamically calling the Make method on your custom classes to build an object
+  3. Factory methods  - Automation of the created data
+  4. Test Context. Set from Custom Metadata c_TestSettings__Mtd. Public so they may be overridden in code.
+  5. Utility methods 
 
+ @Usage: To create a new object template i) add the business name of the object you are templating to the "Entity" enum. ii) create a new 'maker' Class inheriting from c_TestFactoryMaker and map a reference to the new class from the ENUM in the map 'makers' below.
+ 
+ @History
+  VERSION     AUTHOR           DATE            DETAIL
+  1.0         Matt Evans       7/12/2018       Draft - A generic context and a basic factory automation for object creation
+  1.1         Matt Evans       7/12/2018       Inclusion of custom setting c_TestSettings__c
+  1.2         Matt Evans       9/9/2019        Introduced reflection to connect sObject son relational fields to ID fields (ex. Contact.Account to Contact.AccountId). Fixed an issue with creating composite objects.
+*/
 public virtual class c_TestFactory {
 
-    /******* Context ******/
-    // TODO: Set these default based on the org standard settings
-    public static String countryCode = 'SE';
-    public static String countryName = 'Sweden';
-    public static String timeZoneSidKey = 'Europe/Helsinki';
-    public static String LanguageLocaleKey = 'en_US';
-    public static String LocaleSidKey = 'en_US';
-    public static String currencyIsoCode = 'EUR';
-    public static String EmailEncodingKey = 'UTF-8';
-    public static Datetime now = System.now();
 
+    /**
+    * Registry of Business Objects 
+    * - Allows the factory to map and create sObjects and sets of sObjects
+    **/
 
-    /******* Registry of Business Objects ******/
-    // Allows dynamic creation of sObject and sets of sObjects for testing
-
-    // Business Object Entities:
-    // - Each ENUM is a label representing a business object to be built
-
+    /**
+    * Entity: EDITABLE: Business Object Entities: Each ENUM is a label representing a business object to be built. When you create a new object, decide on a name and add it here:
+    **/
     public enum Entity {
-        //...The order is important, as it defines the order of the DML
+        //...The order is IMPORTANT!!! It defines the order of the DML. If you need one object inserted before another, this must be reflected here.
         ADMIN_USER
-        ,SALES_USER
+        ,COUNTRY_USER
         ,SALES_ACCOUNT
         ,SALES_CONTACT
+        ,SALES_OPPORTUNITY
         ,CUSTOMER
         //...Add more here as you go...
     }
 
-    // Map Business Objects to "maker" Classes that generate the data
-    // - Each Business Object (Enum) is mapped to a class that will generate the sObject records and keep an index of them to insert later
-
+    /**
+    * makers: EDITABLE: Maps your ENUM Business Objects to the actual "maker" Classes that will generate the sObject records and keep an index of them to insert later
+    **/
     public static final Map<Entity, c_TestFactoryMaker> makers = new Map<Entity, c_TestFactoryMaker> {
-
-            //...Map your Entity labels to their maker class here...
-            Entity.ADMIN_USER => new c_TestFactory_Users.AdminUser()
+            /*...Map your Entity labels to their maker class here...*/
+            Entity.ADMIN_USER => new c_TestFactory_CoreUsers.StandardSystemAdmin()
+            ,Entity.COUNTRY_USER => new c_TestFactory_Users.CountryUser()
             ,Entity.SALES_ACCOUNT => new c_TestFactory_SalesCloud.SalesAccount()
             ,Entity.SALES_CONTACT  => new c_TestFactory_SalesCloud.SalesContact()
+            ,Entity.SALES_OPPORTUNITY  => new c_TestFactory_SalesCloud.SalesOpportunity()
             ,Entity.CUSTOMER  => new c_TestFactory_SalesCloud.Customer()
-            //...Add more here as you go...
-
+            //...Add more here as you go...*/
     };
 
-    /******* Calling the Maker Classes from the factory ******/
-    // Method "MAKE"
-    //  - Implemented on every Business Object's maker class as they all inherrit from c_TestFactoryMaker
-    //  - Creates and returns one or more sObject records based on default values, merged with any sObject passed
-    //  - Every sObject created by the class is kept in a list, so that the factory can check through them to group DML and automate the insert process
 
+    /**
+    * ************* DO NOT EDIT BELOW THIS LINE *************
+    **/
+
+    /**
+    * Maker - Dynamically calling the Make method on your custom classes to build an object
+    * - Implemented on every Business Object's maker class as they all inherrit from c_TestFactoryMaker
+    *  - Creates and returns one or more sObject records based on default values, merged with any sObject passed
+    *  - Every sObject created by the class is kept in a list, so that the factory can check through them to group DML and automate the insert process
+    **/
     public static sObject make(Entity businessObjectToCreate) {
-        c_TestFactoryMaker businessObject = makers.get(businessObjectToCreate);
-        businessObject.make(null);
-        return businessObject.pop();
+        return make(businessObjectToCreate, null);
     }
 
     public static sObject make(Entity businessObjectToCreate, sObject sourceObject) {
         c_TestFactoryMaker businessObject = makers.get(businessObjectToCreate);
-        businessObject.make(sourceObject);
-        return businessObject.pop();
+        return businessObject.make(sourceObject);
+        // return businessObject.pop(); // replaced by get()[0] to return the FIRST rather than LAST item from the list
+        // return businessObject.get()[0]; // Get first incase the object creates a long list of items, like a composite list
     }
 
-
-    /******* Factory methods *******/
-    // - Automation of the created data
+    /**
+    * Factory methods  - Automation of the created data
+    **/
 
     // Method "RUN"
     //  - Execute the factory context and run the DML. Default behaviour is to flush the list of records after inserting
 
     public static void run() {
         System.debug(LoggingLevel.INFO,'@@ START: Test Factory run() @@');
-
-        // Create each set of business objects in order of the Entity ENUM
-        for (Entity e : Entity.values()) {
-            createEntity(e, TRUE);
-        }
-
+        run(FALSE); // run with do not clear flag set to FALSE. Result is list gets flushed and cleared after execution.
         System.debug(LoggingLevel.INFO,'@@ START: Test Factory run() complete @@');
     }
 
@@ -125,6 +112,12 @@ public virtual class c_TestFactory {
         sObject[] objs = new List<sObject>();
 
         // Get all the sObject records from the Business Object's class, generated every time the 'make' method was run
+        if (!makers.containsKey(businessObjectToCreate)) {
+            // There's a miss match between entities and makers. Instead of breaking the whole app we will report the bug and break this loop
+            System.debug(LoggingLevel.ERROR, '@@ The business object '+businessObjectToCreate+' is not mapped to a factory class in the makers map corrcetly. Make sure it is not missing, is spelled correctly or hasnt been removed.');
+            return; 
+        }
+        // System.debug(LoggingLevel.INFO,'@@ Adding ' + makers.get(businessObjectToCreate).get().size() + ' ' + businessObjectToCreate + ' elements to the list');
         objs.addAll(makers.get(businessObjectToCreate).get());
 
         // Sort the list of sobject record by Type, in order of discovery (FIFO)
@@ -135,9 +128,23 @@ public virtual class c_TestFactory {
         Map<String, sObject[]> collections_UPDATE = new map<String, sObject[]>();
 
         for (sObject o : objs) {
+            Schema.DescribeSObjectResult dsr = o.getsObjectType().getDescribe();
 
+            // While looping over each record, we will inspect the relationship fields to dynamically assign ID's from any sObject
+            // that the template joined (Ex. assign an AccoutId from an sObject on the Account field on Contact, or a __r reference)
+            // This allows us to set sObjects to be assigned to reference fields when building out composite objects
+            Map<String,String> relationalFieldMap = getRelationalFieldMap(dsr);
+            for(String fieldName : relationalFieldMap.keySet()) {
+                String relationshipName = relationalFieldMap.get(fieldName);
+                sObject relationshipObj = o.getSObject(relationshipName);
+                if (relationshipObj!=null && relationshipObj.id!=null) {
+                    System.debug(LoggingLevel.INFO, '@@ Sobject in Relationship field '+relationshipName+' is assigning ' + fieldName+' with value '+relationshipObj.id);
+                    o.put(fieldName,relationshipObj.id);
+                }
+            }
+            
+            // Now sort the records into UPDATE or INSERT DML, storing with object name as key
             String name = o.getSObjectType().getDescribe().getName();
-
             if (o.get('Id')!=null)
             {
                 if (!collections_UPDATE.containsKey(name)) {
@@ -149,7 +156,6 @@ public virtual class c_TestFactory {
 
                 collections_UPDATE.put(name, objectsByType);
             } else {
-
                 if (!collections_INSERT.containsKey(name)) {
                     createOrder.add(name);
                 }
@@ -166,9 +172,11 @@ public virtual class c_TestFactory {
         // - DML should not be in a loop ;) but we are limiting this by TYPE and therefore this should not be called more than the number of sObject types being created
 
         for (String name : createOrder) {
+            
             if (collections_UPDATE.containsKey(name) && collections_UPDATE.get(name).size()>0) update (collections_UPDATE.get(name));
             if (collections_INSERT.containsKey(name) && collections_INSERT.get(name).size()>0) insert (collections_INSERT.get(name));
         }
+
 
         // Clear the list of sObject records on the Business Object
         // - this is default behaviour, however use "runAndKeepContext" if you want to keep the sObjects on the business objects in memory
@@ -179,8 +187,55 @@ public virtual class c_TestFactory {
         System.debug(LoggingLevel.INFO,'@@ END: Test Factory Create Entity '+ businessObjectToCreate +' @@');
     }
 
+    /**
+    * Test Context. Set from Custom Metadata c_TestSettings__Mtd. Public so they may be overridden in code.
+    **/
+    public static String COUNTRY_CODE {get{if (COUNTRY_CODE==null) setDefaultContext(); return COUNTRY_CODE;} set{COUNTRY_CODE = value;}}
+    public static String COUNTRY_NAME {get{if (COUNTRY_NAME==null) setDefaultContext(); return COUNTRY_NAME;} set{COUNTRY_NAME = value;}}
+    public static String TIMEZONE_SID_KEY {get{if (TIMEZONE_SID_KEY==null) setDefaultContext(); return TIMEZONE_SID_KEY;} set{TIMEZONE_SID_KEY = value;}}
+    public static String LANGUAGE_LOCALE_KEY {get{if (LANGUAGE_LOCALE_KEY==null) setDefaultContext(); return LANGUAGE_LOCALE_KEY;} set{LANGUAGE_LOCALE_KEY = value;}}
+    public static String LOCALE_SID_KEY {get{if (LOCALE_SID_KEY==null) setDefaultContext(); return LOCALE_SID_KEY;} set{LOCALE_SID_KEY = value;}}
+    public static String CURRENCY_ISO_CODE {get{if (CURRENCY_ISO_CODE==null) setDefaultContext(); return CURRENCY_ISO_CODE;} set{CURRENCY_ISO_CODE = value;}}
+    public static String EMAIL_ENCODING_KEY {get{if (EMAIL_ENCODING_KEY==null) setDefaultContext(); return EMAIL_ENCODING_KEY;} set{EMAIL_ENCODING_KEY = value;}}
+    public static Boolean BULKIFY_TESTS {get{if (BULKIFY_TESTS==null) setDefaultContext(); return BULKIFY_TESTS;} set{BULKIFY_TESTS = value;}}
+    public static Datetime now = System.now();
 
-    /******* Utility methods *******/
+    public static void setDefaultContext()
+    {
+        c_TestSettings__mdt [] activeSettings = [SELECT MasterLabel, 
+                               QualifiedApiName, 
+                               Created__c,
+                               Active__c,
+                               BULKIFY_TESTS__c,
+                               COUNTRY_CODE__c,
+                               COUNTRY_NAME__c,
+                               CURRENCY_ISO_CODE__c,
+                               EMAIL_ENCODING_KEY__c,
+                               LANGUAGE_LOCALE_KEY__c,
+                               LOCALE_SID_KEY__c,
+                               TIMEZONE_SID_KEY__c
+                               FROM c_TestSettings__mdt  
+                               where Active__c = TRUE
+                               Order By Created__c DESC ];
+
+        if (!activeSettings.IsEmpty())
+        {
+            c_TestSettings__mdt ts = activeSettings[0];
+            BULKIFY_TESTS = ts.BULKIFY_TESTS__c;
+            COUNTRY_CODE = ts.COUNTRY_CODE__c;
+            COUNTRY_NAME = ts.COUNTRY_NAME__c;
+            CURRENCY_ISO_CODE = ts.CURRENCY_ISO_CODE__c;
+            EMAIL_ENCODING_KEY = ts.EMAIL_ENCODING_KEY__c;
+            LANGUAGE_LOCALE_KEY = ts.LANGUAGE_LOCALE_KEY__c;
+            LOCALE_SID_KEY = ts.LOCALE_SID_KEY__c;
+            TIMEZONE_SID_KEY = ts.TIMEZONE_SID_KEY__c;
+        }
+    }
+
+
+    /**
+    * Utility methods 
+    **/
 
     // Incorporate fields into passed object
     public static sObject mergeFields(sObject source, sObject destination) {
@@ -201,6 +256,39 @@ public virtual class c_TestFactory {
         return destination;
     }
 
-    public class TestFactoryException extends Exception {}
 
+    // Map relational fields 
+    // Mapping once all fields on an object limits the need to loop large lists of fields repeately per transaction
+    static Map<String, Map<String, String>> objectRelationalFieldMap = new Map<String, Map<String, String>>();
+    static Map<String, String> getRelationalFieldMap(Schema.DescribeSObjectResult res) {
+        String objectName = res.getName();
+
+        // If we've already built the map, return values instead of looping the field set again
+        if (!objectRelationalFieldMap.containsKey(objectName)) {
+            // Get the field name and the relational field name ex. field with name "AccountId" on Contact has relationalfield name "Account"
+            Map<String, String> fieldNameToRelationshipName = new Map<String,String>();
+                
+            // Field info to cache
+            for(Schema.SobjectField f : res.fields.getMap().Values()) {    
+
+                // Only get relation fields (Loopup and master relations)       
+                if (f.getDescribe().getReferenceTo().size()>0 && f.getDescribe().getRelationshipName()!=null) {
+
+                    String fieldName = f.getDescribe().getName();
+                    String relationshipName = f.getDescribe().getRelationshipName();
+                    fieldNameToRelationshipName.put(fieldName, relationshipName);
+                }
+            }
+            // store only necessary fields in the map
+            objectRelationalFieldMap.put(objectName, fieldNameToRelationshipName);
+        }
+        return objectRelationalFieldMap.get(objectName);
+    }
+
+    /**
+    * Exception Class
+    */
+
+    public class TestFactoryException extends Exception {}
+//*/
 }
