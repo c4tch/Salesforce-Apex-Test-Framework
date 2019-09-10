@@ -55,7 +55,7 @@ public class c_TestFactory_Users {
                 ((User)sourceObject).username = ((User)sourceObject).Alias + '@'+ orgId+'.test.com';
             }
 
-            // Add to the Templates's list of records created and return the result for this record
+            // Add to the factory's list of records created and return the result for this record
             add(sourceObject);
 
             return (sObject) sourceObject;
