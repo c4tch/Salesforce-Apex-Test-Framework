@@ -235,6 +235,8 @@ public virtual class c_TestFactory {
 
     /**
     * Utility methods 
+    * 1. Field merger
+    * 2. Map relational fields
     **/
 
     // Incorporate fields into passed object

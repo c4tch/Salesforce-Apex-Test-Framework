@@ -84,6 +84,28 @@ public abstract class c_TestFactoryMaker extends c_TestFactory {
         return destination;
     }
 
+    // Get Profile -  common for user creation. Use sparringly due to DML; results are cached for the transaction.
+    public static String profileIdByName(String profileName) {
+        if(!profilesByName.containsKey(profileName)) {
+            Profile[] p = [SELECT Id FROM Profile WHERE Name = :profileName];
+            if (p!=null && !p.IsEmpty())
+                profilesByName.put(profileName, p[0].Id);
+        }
+        return profilesByName.get(profileName);
+    }
+    static map<String, Id> profilesByName = new Map<String, Id>();
+
+    // Get Role -  common for user creation. Use sparringly due to DML; results are cached for the transaction.
+    public static String roleIdByName(String developerName) {
+        if(!rolesByName.containsKey(developerName)) {
+            UserRole[] r = [select Id from UserRole where DeveloperName = :developerName];
+            if (r!=null && !r.IsEmpty())
+                rolesByName.put(developerName,r[0].Id);
+        }
+        return rolesByName.get(developerName);
+    }
+    static map<String, Id> rolesByName = new Map<String, Id>();
+
     /**
     * Exception Class 
     **/

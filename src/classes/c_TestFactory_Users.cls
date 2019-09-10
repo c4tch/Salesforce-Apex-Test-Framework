@@ -25,7 +25,7 @@ public class c_TestFactory_Users {
             // Default values
             rec.Alias = 'country';
             rec.UserName = rec.Alias + '@'+ orgId+'.test.com';
-            rec.ProfileId = c_Describe.profileIdByName('Standard User');
+            rec.ProfileId = profileIdByName('Standard User');
 
             rec.Email = rec.Alias + '@some.test.com';
             rec.FirstName = 'Country';

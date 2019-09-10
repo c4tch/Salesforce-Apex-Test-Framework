@@ -24,7 +24,7 @@ public class c_TestFactory_CoreUsers {
             // Default values
             rec.Alias = 'SysAdmin';
             rec.UserName = rec.Alias + '@'+ orgId+'.any.test.com';
-            rec.ProfileId = c_Describe.profileIdByName('System Administrator');
+            rec.ProfileId = profileIdByName('System Administrator');
 
             rec.Email = rec.Alias + '@any.test.com';
             rec.FirstName = 'Admin';

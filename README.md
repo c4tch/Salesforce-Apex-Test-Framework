@@ -1,5 +1,4 @@
 # A Salesforce Apex Unit Test Framework for Agile Teams
-FAIR WARNING: This is the first commit :) Though it's based on several past projects; improvements and testing are yet to come. Give it a test-drive and let me know of issues.
 
 ## About
 This project provides a test framework for for Apex unit tests on the Salesforce lightning platform. The framework provides a scaffold for automating and reusing test data to make the development lifecycle more predictable and efficient. 
@@ -47,32 +46,29 @@ To Maker classes are provided for creating Users and Sales Cloud objects. These 
 - c_TestFactory_Users
 - c_TestFactory_SalesCloud
 
-A demo implementation in a sample unit test. Note that the unit test only shows the bare minimum in the TestSetup to generate the data:
-- c_TestFactory_zzz_SampleUnitTest
-
-An OrgSettings class*
-- c_OrgSettings
-
-\*Contains helper methods. Technically this class can be removed with some minor edits, but it's a useful pattern to use. See below.
-
 ### Class Details:
 
 #### c_TestFactory 
 Does three jobs:
 1) Manage Test Context
--It first has some static values to the current context you want to run the test in (country, locale etc.). This has some hard coded defaults. Adjust these to suit your org, or add a dynamic reference, it's up to you.
+-Good tests run in a consistent context, ie predictable values such as language, country, email encoding formats, data volumes. This ensures that you are able to vary the context fo the tests being run in a predictable way, both as a developer and a tester.
+-These are contained in a set of static values stating the current context you want to run the test in (country, locale etc.). T
 
-```Apex
-    /******* Context ******/
-    public static String countryCode = 'SE';
-    public static String countryName = 'Sweden';
-    public static String timeZoneSidKey = 'Europe/Helsinki';
-    public static String LanguageLocaleKey = 'en_US';
-    public static String LocaleSidKey = 'en_US';
-    public static String currencyIsoCode = 'EUR';
-    public static String EmailEncodingKey = 'UTF-8';
-    public static Datetime now = System.now();
-```
+The test factory uses a custom metadata table “Test Settings” *c_TestSettings__mdt*
+In this table you create a context with the following settings:
+
+- BULKIFY_TESTS__c - True / False,
+    -  A toggle for your test scripts to check to define how much data to enter. Tests can be very slow using large data volumes, so for a release make sure this is set to FALSE. For development however set this to TRUE and test your trigger methods are bulkified!
+- COUNTRY_CODE__c - standard salesforce ISO country code
+- COUNTRY_NAME__c - country name
+- CURRENCY_ISO_CODE__c - standard salesforce ISO currency code
+- EMAIL_ENCODING_KEY__c - encoding to use in emails generated in code, ex. UTF-8
+- LANGUAGE_LOCALE_KEY__c - standard salesforce language locale ex. en_US
+- LOCALE_SID_KEY__c - standard salesforce locale sid key ex. en_US
+- TIMEZONE_SID_KEY__c - standard salesforce timezone sid key ex. Europe/Helsinki
+- Active__c - tells the test factory to use this rule
+
+The test factory will use the most recently created row marked *Active* 
 
 2) Build Objects for use in tests
 - A common "make" method allows unit tests to reference and build any objects registered in the class
@@ -141,19 +137,6 @@ public class c_TestFactory_SalesCloud {
 }
 ```
 
-#### c_TestFactory_zzz_SampleUnitTest
-An example test class with pseudo code.
-
-#### c_OrgSettings (and custom meta data c__TestSetUp__mtd) - Optional Dependency
-The framework introduces a common OrgSettings class where lookups to configuration type data can be made from one place.
-- A look up for ProfileId's is provided for example. Results are cached for the length of the transaction. 
-- A "Use Large Data Set In Test" flag. Using a custom metadata object c__TestSetUp__mtd unit tests can check to decide when to use large data volumes in tests or not. 
-
-I would encourage this approach to be tailored / refactored to suit the destination org, but not to remove it. Managing common org settings and set up from a global class allows excellent chances for DRY code that minimises the excess Apex tends to generate.
-
-This is technically an optional class. If you choose to remove it, then it affects the SampleUnitTest where we check the BULKIFY_TESTS() option, and the \_Users class where i use the ProfileID lookup method:.
-
-
 ## Create your own 'maker' classes
 Creating an object and allowing it to be populated by your own values in a unit test is ridiculously easy. The two example classes included in this project for *Users* and *SalesCloud*. The walkthrough of the samples above explains how these are built.
 
@@ -173,141 +156,171 @@ For a tip on how to quickly scaffold and test your maker class, see the Q&A sect
 
 ## Using the factory in a Unit Test
 
-### Touring the example code c_TestFactory_SampleUnitTest
-After importing up the code and custom metadata to an org, there is a Sample unit test "c_TestFactory_SampleUnitTest" showing the various ways you can consume the factory.
-
-It shows how to: 
-i) Use the factory context variables
-ii) Create basic data ( a user, then a set of top level accounts )
-iii) Create a full set of more complex "Customers" - composite objects of Sales Account and Sales Contact records, each under a top level "corporate" account. _Nesting is an important technique required and often hard to get right in data creation.
-
-_It also shows how the run() command can be executed several times, though for optimal DML it's best in your unit tests if they only need to run it once.
-
-The class extends TestFactory, doing so allows us to get all the references to context and methods the factory provides without writing out c_TestFactory 1000 times...
+### Basic use of the framework (pseudo code)
+In this example three entities SALES_USER, SALES_ACCOUNT, SALES_OPPORTUNITY have been created for use by the test method:
 ```Apex
-@isTest
-public class c_TestFactory_zzz_SampleUnitTest extends c_TestFactory {
-
-    @TestSetup
-    public static void setUp() {
-        ... We put the factory calls here, building all the data for all the unit tests in the class
-    }
-    
     @isTest
-    public static void test_DataSetUp() {
-        ... Test the setUp created everything you expected
+    public class c_OpportunityManager_Test extends c_TestFactory {
+        @TestSetup
+        static void setUp() { 
+            User businessUser = (User) make(Entity.SALES_USER, new User(alias = 'myalias'));
+            Account a = (Account) make(Entity.SALES_ACCOUNT, new Account(name = 'Top Level Account '));
+            Opportunity o = (Opportunity)  make(Entity.SALES_OPPORTUNITY, new Opporunity(Account = a, name = 'Opportunity name'))
+            run();
+        }
+        
+        @isTest
+        static void testCase() {
+            // query for the data inserted by setup
+            // do my tests using the businessUser to Run As
+        }
     }
+```
+#### Using objects in the framework
+The framework provides a way to create a template for a business object, above you can see three entities SALES_USER, SALES_ACCOUNT, SALES_OPPORTUNITY  that have been created 
+In your tests you request a copy of a speciffic object using human readable names like SALES_USER or CUSTOMER etc. 
 
-    @isTest
-    public static void test_UserStory() {
-        ... Get the data from the database and test your user story
-    }
-}
+#### Updating / Extending an existing object
+Often you will have additional values to add as default, like required values or expected values. 
+
+Go to the class that’s mapped in TestFactory, ex.:
+```Apex
+Entity.SALES_ACCOUNT => new c_TestFactory_SalesCloud.SalesAccount()
 ```
 
-In setUp we create the main data for the test class. First we define any context variables that can be referenced by the maker classes or elsewhere
-```Apex
-    // Set the general context / change the defaults:
-    c_TestFactory.LanguageLocaleKey = 'sv';
-```
+Each class extends the TestFactoryMaker class, and as such contains a default method for that object. Here you can make sure the basic fields are set as you need, adding or updating as required. If it’s a complex data type with child records etc, usually editing the components the complex data type builds from is enough and you don’t need to edit the complex object itself.
 
-Next, create some data, starting with a user. We call the run() command to execute the DML so that we can run the rest of the unit test in context of the admin user
+Updating a template can cause other tests to fail - this is a GOOD thing, as it means those tests need updating as the data model has changed. Get them up to date!
+
+### Creating your own objects
+1) Create your object template
+
+* Create an Apex class [Namespace][TestFactory][CollectionName] to contain your new object (or add to en existing)
+    * this will contain all your objects that are related to one another. Typically you may wish to do this per project or cloud. ex. MyNameSpace_TestFactory_SalesCloud
+* Create a class extend from c_TestFactoryMaker.
+* *For simple business objec*t (one sObject, no children):
+    *  Define the default() method, returning an sObject with default values.
+
 ```Apex
-    // Create key users
-    User adminUser = (User) make(Entity.ADMIN_USER, new User(username = 'my_special_name@user.example.com', alias = 'admis'));
+    public class SalesAccount extends c_TestFactoryMaker {
+        sObject defaults() {
+            // Default object
+            Account rec = new Account();
+
+            // Default values
+            rec.Name = 'A Customer Account';
+            return (sObject) rec;
+        }
+    }
+```
+* *For complex ‘composite’ objects* (a sObject with one or more complex relationships) 
+    * Tack together simpler business objects into one larger object, such as a Customer (which would be an account, and some contacts perhaps, maybe even a basic opportunity and a lead too). 
+    * Define the default() method, return null. 
+    * Override the make method: 
+        public override sObject make(sObject sourceObject) {
+              // Your custom code is going to go here
+        }
+    * When combining objects, you can pass whole sObjects as a reference value. This way you can build up a structure of objects, such as Accounts with Contacts and Opportunities, cases etc.
+
+```Apex
+    public class Customer extends c_TestFactoryMaker {
+
+        // Mandatory minimum default set up, return null for complex objects
+        sObject defaults() {
+            return null;
+        }
+        
+        // Custom override for the maker
+        public override sObject make(sObject sourceObject) {
+            // Use the exsiting Account, contat and opportunity templates together 
+            // to create an account with a contact and an opportunity
+            Account customerAccount = (Account) c_Testfactory.make(Entity.SALES_ACCOUNT, (Account)sourceObject);
+            c_Testfactory.make(Entity.SALES_CONTACT, new Contact(Account = customerAccount, FirstName = contactFirstName, LastName = 'Contact '+i, Email = contactUniqueEmail));
+            c_Testfactory.make(Entity.SALES_OPPORTUNITY, new Opportunity(Account = customerAccount, Name = customerAccount.name +' Test Oppty '+i, RecordTypeId=c_TestFactory_SalesCloud.renewalOpportunityRecordTypeId));
+            
+            // Return the passed Account object as a root reference
+            return (sObject) customerAccount;
+        }
+    }
+```
+2) Register it to the factory
+Edit the c_TestFactory class to register the new object:
+
+1. Add the business name of the object you are templating to the "Entity" enum in c_TestFactory. This should be a sensible, human readable name such as SALES_USER or SYSTEM_ADMIN or CUSTOMER. It doesnt need to be (shouldn't be) the name of the sObject as you may want different types of the same object depending on the business needs. 
+
+```Apex
+    public enum Entity {
+        //...The order is IMPORTANT!!! 
+        // It defines the order of the DML. 
+        // If you need one object inserted before another, 
+        // this must be reflected here.
+        ADMIN_USER
+        ,COUNTRY_USER
+        ,SALES_ACCOUNT
+        ,SALES_CONTACT
+        ,SALES_OPPORTUNITY
+        ,CUSTOMER
+        //...Add more here as you go...
+    }
+```
+2. map a reference to the new class in c_TestFactory from the ENUM in the map 'makers' .
+
+```Apex
+    public static final Map<Entity, c_TestFactoryMaker> makers = new Map<Entity, c_TestFactoryMaker> {
+        /*...Map your Entity labels to their maker class here...*/
+        Entity.ADMIN_USER => new c_TestFactory_CoreUsers.StandardSystemAdmin()
+        ,Entity.COUNTRY_USER => new c_TestFactory_Users.CountryUser()
+        ,Entity.SALES_ACCOUNT => new c_TestFactory_SalesCloud.SalesAccount()
+        ,Entity.SALES_CONTACT  => new c_TestFactory_SalesCloud.SalesContact()
+        ,Entity.SALES_OPPORTUNITY  => new c_TestFactory_SalesCloud.SalesOpportunity()
+        ,Entity.CUSTOMER  => new c_TestFactory_SalesCloud.Customer()
+        //...Add more here as you go...*/
+};
+```
+3. Use in tests
+Once I have created the new object template, you can now use it in tests. Write a test class that extends c_TestFactory, and in my TestSetup I want to create some records.
+
+ To use an object call this way:
+
+(SObjectToken) make(Entity.MY_ENTITY_NAME, new SObjectToken(OptionalFieldToSetManually = ‘override value’, OptionalReferenceField = sObject) 
+
+The sObjectToken would be something like User, Account etc.
+
+Example: 
+
+```Apex
+    User businessUser = (User) make(Entity.SALES_USER, new User(alias = 'myalias'));
+    Account a = (Account) make(Entity.SALES_ACCOUNT, new Account(Owner = businessUser, name = 'My new Account'));
+```
+Then perform run() for the factory to execute all the objects and insert in the most efficient way.
+
+```Apex
     run();
 ```
+This way with one line, you have predictable test objects in all your tests. No reason not to do TDD!
 
-Now, some corporate level accounts, created using the admin user
-```Apex
-    // Using the admin user, generate content
-    System.runAs(adminUser)
-    {
-        // Create Accounts (high level accounts)
-        Account[] topLevelList = new Account[]{
-        };
-
-        Integer owningAccounts = c_OrgSettings.BULKIFY_TESTS() ? 20 : 1;
-        for (Integer i; i < owningAccounts; i++) {
-            Account a = (Account) make(Entity.SALES_ACCOUNT, new Account(name = 'Top Level Account ' + i));
-            topLevelList.add(a);
-        }
-        System.assert(topLevelList.size()==owningAccounts, 'Top level group accounts not generated');
-
-        run(); // Upsert all data queued so far. We need the top level account id's to create their child customer records...
-        ...
-    }
-```
-
-Using the corporate level accounts as parents, we create a set of Customer records for each one: 
-```Apex
-    // Create customers (low level accounts - with child contacts)
-    for (Account topLevel : topLevelList) {
-        Integer customers = c_OrgSettings.BULKIFY_TESTS() ? 11 : 2;
-        for (Integer i; i < customers; i++) {
-            make(Entity.CUSTOMER, new Account(name = 'Account ' + i, Parent = topLevel));
-        }
-    }
-    System.assert((c_TestFactory.makers.get(Entity.CUSTOMER)).get().size()>0, 'Child accounts not created');
-
-    // Upsert the lower level customers (accounts and contacts)
-    run(); 
-```
-
-#### Creating an object Directly from a template:
-If you want to side step the factory, for what ever reason, you can. Doing it via the factory means you can automate the generation of the data, but it's ok to call the maker classes too.
-
-Don't forget to extend the wrapping class with c_TestFactory to save you having to write c_TestFactory. every time you reference something...
-
-Essentially it's only two lines to reference a maker:
+Code clip (will not compile!):
 
 ```Apex
-  TestFactoryMaker myAccountMaker = new TestFactory_SalesCloud.SalesAccount();
-  Account a = (Account) myAccountMaker.make(new Account());
-```
-
-The below example shows how this can be used. This also shows how maker classes build an in memory list when they are called _This is how the factory knows what has been built, and is the 'secret' to the DML automation:
-
-```Apex
-  TestFactoryMaker myAccountMaker = new TestFactory_SalesCloud.SalesAccount();
-  Account a = (Account) myAccountMaker.make(new Account());
-  
-  System.assertEquals(a.Name, 'A Customer Account');
-  System.assertEquals(mySalesAccounts.get().size(), 1); // a reference to the created account is kept in the SalesAccount object
-  
-  // Create some more if you want to check!
-  for (Integer i; i<10; i++)
-  {
-    mySalesAccounts.make(new Account(name='Another account '+i));
-  }
-  
-  System.assertEquals(mySalesAccounts.get().size(), 11); // a reference to each created account is kept in the SalesAccount object
-  
-  // Lets side steps the factory compeltely and do it the old way:
-  insert (Account[]) mySalesAccounts.get();
-```
-
-Use the factory "make" method though is much simpler, and you get the same result, with the added bonus the factory to remember what you did on each object ;). Again, extend the wrapping class with c_TestFactory to save keystrokes:
-
-```
-  make(Entity.Sales_Account, (sobject) new Account());
-  System.assertEquals(makers.get(Entity.Sales_Account).get().size(), 1); // a reference to the created account is kept in the factory object for later
-  
-  for (Integer i; i<10; i++)
-  {
-    make(Entity.Sales_Account, (sobject) new Account(name='Another account '+i));
-  }
-  
-  System.assertEquals(makers.get(Entity.Sales_Account).get().size(), 11); // a reference to each created account is kept in the SalesAccount object
-  
-  run();
+    public class c_TestFactory_UnitTest_EXAMPLE extends c_TestFactory {
+    @TestSetup
+    public static void setUp() { 
+        // !important! Do this first, it sets the general context, country values etc.
+        c_TestFactory.setDefaultContext();
+        
+        // Create an admin user using a template, I want to override the default alias so I can find it easily
+        User adminUser = (User) make(Entity.ADMIN_USER, new User(alias = 'admis'));
+        
+        // ....create more objects
+        
+        // I'm done, either I'm finished or I want to get these inserted to the database so I can use their ID's
+        run();
 ```
 
 ## Q&A
 ### Ideas for improvement
 - Error handling and reporting of failures to enable trend analysis of common development / SIT problems
 - Include the new EventBus delivery methods as well as DML. Now that would be cool.
-- This project overlaps to the OrgSettings area and automation control for example (ie blocking and working with triggers, validation rules and process buider at scale), it might be desirable to abstract these away to make the framework more contained.
 
 ### Is it really a framework?
 Technically not, though it does have interfaces that mandate certain footprints and coding styles, it is more of a 'pattern'; however this repo can be used directly as base code and extended easily, so the answer is also 'Yes'. Other examples of frameworks in apex include Kevin O'Hara's excellent Light Weight Trigger Framework.
@@ -320,33 +333,20 @@ Use some anonymous apex. Here's an example I wrote after creating the AdminUser 
 
 Note that as this is anon apex, there is no class to extend using c_TestFactory, so you'll see that written everywhere...
 ```Apex
-    // Check the org can find the profile, I'm paranoid
-    System.debug(c_OrgSettings.profileIdByName('System Administrator'));
+    /*
+    SFDX: Execute Anonymous Apex with Currently Selected Text
+    or this:
+    SFDX: Execute Anonymous Apex with Editor Contents
+    */
 
-    // Set the general context / change the defaults:
-    c_TestFactory.LanguageLocaleKey = 'sv';
-
-    // Create some test data...
-
-    // Create key users
-    User adminUser = (User) c_TestFactory.make(c_TestFactory.Entity.ADMIN_USER, (sObject) new User(username = 'my_special_name@user.example.com', alias = 'admis'));
-    User adminUser1 = (User) c_TestFactory.make(c_TestFactory.Entity.ADMIN_USER, (sObject) new User(username = 'my_special_name1@user.example.com', alias = 'admi1'));
-    User adminUser2 = (User) c_TestFactory.make(c_TestFactory.Entity.ADMIN_USER, (sObject) new User(username = 'my_special_name2@user.example.com', alias = 'admi2'));
-
-    System.debug(LoggingLevel.INFO, '@@ '+ adminUser.username);
-    System.debug(LoggingLevel.INFO, '@@ '+ adminUser.email);
-    System.debug(LoggingLevel.INFO, '@@ '+ adminUser.LanguageLocaleKey);
-
-    System.debug(LoggingLevel.INFO, '@@ '+ c_TestFactory.makers.get(c_TestFactory.Entity.ADMIN_USER).get().size());
-    System.debug(LoggingLevel.INFO, '@@ '+ c_TestFactory.makers.get(c_TestFactory.Entity.ADMIN_USER).get());
-
-    System.SavePoint s = Database.setSavepoint();
-    c_TestFactory.run();
+    System.Savepoint s = Database.setSavepoint();
     
-    // Check out my users inserted
-    User[] users = [select id,name from user];
-    System.debug(LoggingLevel.INFO, '@@ '+users);
-    Database.rollback(s);
-    //*/
+    c_TestFactory.setDefaultContext();Account a = (Account) c_TestFactory.make(c_TestFactory.Entity.SALES_ACCOUNT, new Account(name = 'Top Level Account '));
+    
+    Opportunity o = (Opportunity)  c_TestFactory.make(c_TestFactory.Entity.SALES_OPPORTUNITY, new Opporunity(Account = a, ouhoiuhjoihj));
+
+    c_TestFactory.run();
+
+Database.rollback(s);
 ```
 
