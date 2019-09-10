@@ -1,5 +1,5 @@
 /**
- @Name: LMS_TestFactory_SalesCloud.cls
+ @Name: c_TestFactory_SalesCloud.cls
  @TestedBy: Implementing in a test class
  @Description:
   TestFactory for Sales Cloud objects for the LMS project namespace
