@@ -15,6 +15,7 @@
   1.0         Matt Evans       7/12/2018       Draft - A generic context and a basic factory automation for object creation
   1.1         Matt Evans       7/12/2018       Inclusion of custom setting c_TestSettings__c
   1.2         Matt Evans       9/9/2019        Introduced reflection to connect sObject son relational fields to ID fields (ex. Contact.Account to Contact.AccountId). Fixed an issue with creating composite objects.
+  1.3         Matt Evans       17/9/2019       Protoyping speeding up the type and sObject references for CPU time
 */
 public virtual class c_TestFactory {
 
@@ -127,19 +128,31 @@ public virtual class c_TestFactory {
         Map<String, sObject[]> collections_INSERT = new map<String, sObject[]>();
         Map<String, sObject[]> collections_UPDATE = new map<String, sObject[]>();
 
+        // Speed up the list by indexing relationsional field map by sObjects invovled
+        // This is very fast, but will we get different SObject types in the class? TODO: Work it out!
+        Set<String> sObjectTokens = new Set<String>();
         for (sObject o : objs) {
-            Schema.DescribeSObjectResult dsr = o.getsObjectType().getDescribe();
+            String tokenName  = o.getToken();
+            if (tokenName!=null) {
+                SObjectType r = ((SObject)(Type.forName('Schema.'+tokenName).newInstance())).getSObjectType();
+                DescribeSObjectResult d = r.getDescribe();
+                setRelationalFieldMap(d);
+            }
+        }
 
+        for (sObject o : objs) {
             // While looping over each record, we will inspect the relationship fields to dynamically assign ID's from any sObject
             // that the template joined (Ex. assign an AccoutId from an sObject on the Account field on Contact, or a __r reference)
             // This allows us to set sObjects to be assigned to reference fields when building out composite objects
-            Map<String,String> relationalFieldMap = getRelationalFieldMap(dsr);
-            for(String fieldName : relationalFieldMap.keySet()) {
-                String relationshipName = relationalFieldMap.get(fieldName);
-                sObject relationshipObj = o.getSObject(relationshipName);
-                if (relationshipObj!=null && relationshipObj.id!=null) {
-                    System.debug(LoggingLevel.INFO, '@@ Sobject in Relationship field '+relationshipName+' is assigning ' + fieldName+' with value '+relationshipObj.id);
-                    o.put(fieldName,relationshipObj.id);
+            Map<String,String> relationalFieldMap = getRelationalFieldMap(o.getToken());
+            if (relationalFieldMap!=null) {
+                for(String fieldName : relationalFieldMap.keySet()) {
+                    String relationshipName = relationalFieldMap.get(fieldName);
+                    sObject relationshipObj = o.getSObject(relationshipName);
+                    if (relationshipObj!=null && relationshipObj.id!=null) {
+                        System.debug(LoggingLevel.INFO, '@@ Sobject in Relationship field '+relationshipName+' is assigning ' + fieldName+' with value '+relationshipObj.id);
+                        o.put(fieldName,relationshipObj.id);
+                    }
                 }
             }
             
@@ -262,7 +275,7 @@ public virtual class c_TestFactory {
     // Map relational fields 
     // Mapping once all fields on an object limits the need to loop large lists of fields repeately per transaction
     static Map<String, Map<String, String>> objectRelationalFieldMap = new Map<String, Map<String, String>>();
-    static Map<String, String> getRelationalFieldMap(Schema.DescribeSObjectResult res) {
+    static Map<String, String> setRelationalFieldMap(Schema.DescribeSObjectResult res) {
         String objectName = res.getName();
 
         // If we've already built the map, return values instead of looping the field set again
@@ -284,6 +297,9 @@ public virtual class c_TestFactory {
             // store only necessary fields in the map
             objectRelationalFieldMap.put(objectName, fieldNameToRelationshipName);
         }
+        return objectRelationalFieldMap.get(objectName);
+    }
+    static Map<String, String> getRelationalFieldMap(String objectName) {
         return objectRelationalFieldMap.get(objectName);
     }
 

@@ -16,6 +16,7 @@
   VERSION     AUTHOR           DATE            DETAIL
   1.0         Matt Evans       7/12/2018       Initial pattern
   1.1         Matt Evans       10/9/2019       Optimised maker with minor tweaks for return values
+  1.2         Matt Evans       17/9/2019       Protoyping speeding up the type and sObject references for CPU time
 */
 
 public abstract class c_TestFactoryMaker extends c_TestFactory {
@@ -23,8 +24,6 @@ public abstract class c_TestFactoryMaker extends c_TestFactory {
     /**
     * Maker methods
     **/
-    // Mandatory implementation "default" method
-    abstract sObject defaults();
 
     // Optional override "make" method
     public virtual sObject make(sObject sourceObject) {
@@ -42,14 +41,21 @@ public abstract class c_TestFactoryMaker extends c_TestFactory {
         return sourceObject;
     }
 
+    // Mandatory implementation "default" method
+    abstract sObject defaults();
+
     /**
     * Store each sObject created 
     **/
+
     sObject[] data = new List<sObject>();
+    String sObjectToken;
 
     // Getters and setters to access and manage the stored sObjects
+
     public void add(sObject objectToAdd) {
         data.add(objectToAdd);
+        getToken();
     }
     public sObject[] get() {
         return data;
@@ -60,11 +66,18 @@ public abstract class c_TestFactoryMaker extends c_TestFactory {
     public void clear() {
         data = new List<sObject>();
     }
+    public string getToken() {
+        if (sObjectToken == null && data.size()>0 && data[0]!=null) {
+            sObjectToken = data[0].getsObjectType().getDescribe().getName();
+        }
+        return sObjectToken;
+    }
 
 
     /**
     * Utility methods 
     **/
+
     // Incorporate fields into passed object
     public static sObject mergeFields(sObject source, sObject destination) {
         return mergeFields(source, destination, false);
@@ -83,7 +96,7 @@ public abstract class c_TestFactoryMaker extends c_TestFactory {
         }
         return destination;
     }
-
+    
     // Get Profile -  common for user creation. Use sparringly due to DML; results are cached for the transaction.
     public static String profileIdByName(String profileName) {
         if(!profilesByName.containsKey(profileName)) {
@@ -106,9 +119,11 @@ public abstract class c_TestFactoryMaker extends c_TestFactory {
     }
     static map<String, Id> rolesByName = new Map<String, Id>();
 
+
     /**
     * Exception Class 
     **/
+
     public class TestFactoryBaseException extends Exception {
     }
 //*/
