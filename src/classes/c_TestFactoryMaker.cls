@@ -16,6 +16,8 @@
   VERSION     AUTHOR           DATE            DETAIL
   1.0         Matt Evans       7/12/2018       Initial pattern
   1.1         Matt Evans       10/9/2019       Optimised maker with minor tweaks for return values
+  1.2         Matt Evans       17/9/2019       Removed descibe calls in loops to and sObject references to improve CPU time
+  1.2.1       Matt Evans       30/9/2019       Tidy & included getProprofileIdByNamefile and getRoleIdByName calls in here as they are so commonly needed
 */
 
 public abstract class c_TestFactoryMaker extends c_TestFactory {
@@ -23,8 +25,6 @@ public abstract class c_TestFactoryMaker extends c_TestFactory {
     /**
     * Maker methods
     **/
-    // Mandatory implementation "default" method
-    abstract sObject defaults();
 
     // Optional override "make" method
     public virtual sObject make(sObject sourceObject) {
@@ -42,14 +42,20 @@ public abstract class c_TestFactoryMaker extends c_TestFactory {
         return sourceObject;
     }
 
+    // Mandatory implementation "default" method
+    abstract sObject defaults();
+
     /**
     * Store each sObject created 
     **/
+
     sObject[] data = new List<sObject>();
 
     // Getters and setters to access and manage the stored sObjects
+
     public void add(sObject objectToAdd) {
         data.add(objectToAdd);
+        //getToken();
     }
     public sObject[] get() {
         return data;
@@ -58,7 +64,8 @@ public abstract class c_TestFactoryMaker extends c_TestFactory {
         return data.size() > 0 ? data[data.size() - 1] : null;
     }
     public void clear() {
-        data = new List<sObject>();
+        System.debug(LoggingLevel.INFO, '@@ Clear data');
+        this.data = new List<sObject>();
     }
 
 
@@ -83,7 +90,7 @@ public abstract class c_TestFactoryMaker extends c_TestFactory {
         }
         return destination;
     }
-
+    
     // Get Profile -  common for user creation. Use sparringly due to DML; results are cached for the transaction.
     public static String profileIdByName(String profileName) {
         if(!profilesByName.containsKey(profileName)) {
@@ -105,6 +112,7 @@ public abstract class c_TestFactoryMaker extends c_TestFactory {
         return rolesByName.get(developerName);
     }
     static map<String, Id> rolesByName = new Map<String, Id>();
+
 
     /**
     * Exception Class 

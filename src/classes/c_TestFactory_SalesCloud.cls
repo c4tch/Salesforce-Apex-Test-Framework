@@ -59,7 +59,7 @@ public class c_TestFactory_SalesCloud {
             // Default object
             Opportunity rec = new Opportunity();
 
-            rec.Name = 'SafePoint Oppty';
+            rec.Name = 'An Oppty';
             rec.StageName  = 'Analyse';
             rec.CloseDate = System.today() + 90;
             
