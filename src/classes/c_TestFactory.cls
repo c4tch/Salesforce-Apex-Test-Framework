@@ -2,10 +2,11 @@
  @Name: c_TestFactoryEntity.cls
  @TestedBy: Implementing in a test class
  @Description: Registry of Business Objects 
- - Update here when creating a new object for use in tests
- - Allows the factory to map and create sObjects and sets of sObjects
+ - Update here when creating a new object for use in tests to allow the factory to map and create sObjects and sets of sObjects
 
- @Usage: To create a new object template i) add the business name of the object you are templating to the "Entity" enum. ii) create a new 'maker' Class inheriting from c_TestFactoryMaker and map a reference to the new class from the ENUM in the map 'makers' below.
+ @Usage: 
+ 1) Your test class should inherit from here to access context, constants and the factory methods "Make" and "Run"
+ 2) To create a new object template i) add the business name of the object you are templating to the "Entity" enum. ii) create a new 'maker' Class inheriting from c_TestFactoryMaker and map a reference to the new class from the ENUM in the map 'makers' below.
  
  @History
   VERSION     AUTHOR           DATE            DETAIL
