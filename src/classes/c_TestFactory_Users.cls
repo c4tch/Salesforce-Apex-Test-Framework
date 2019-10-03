@@ -39,7 +39,7 @@ public class c_TestFactory_Users {
             return (sObject) rec;
         }
 
-        // Custom maker method so we can apply some logic to the default values based on the source object
+        // Custom maker override - we want to update the username based on any custom supplied Alias
         public override sObject make(sObject sourceObject) {
             
             // Process the custom create method
