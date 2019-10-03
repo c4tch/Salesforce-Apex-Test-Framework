@@ -1,7 +1,8 @@
 /**
  @Name: c_TestFactoryAutomation.cls
  @TestedBy: Implementing in a test class
- @Description: TestFactory Framework automation class; generates test data on demand
+ @Description: TestFactory Framework automation class; generates test data on demand.
+  This class should not need to be edited.
   1. Make methods - 'Make'objects in memory - dynamically calls the Make method on a custom template classes to build an object
   3. Automation methods  - 'Run' automation of the created data
   4. Test Context. Set from Custom Metadata c_TestSettings__Mtd. Public so they may be overridden in code.
