@@ -33,30 +33,50 @@ Once a developer has "made" their data, the factory will then insert the sObject
 
 This avoids creating different data footprints for every project and code initiative, while still allowing for refactoring and customisation.
 
-## Implementation
+## In Use
 The following guides you through the contents of the framework in this project:
 
 ### Classes
-Two main classes, the main factory class, and an abstract Maker which is used as the base for creating your own objects so that the factory has a predictable set of methods and accessors. (It's an Abstract class, if you want to be specific).
+Three main classes, the main factory class, an automation class (the one that creates and inserts data to the database) and an abstract Maker (the base for creating your own objects so that the factory has a predictable set of methods and accessors).
 
-- c_TestFactory
-- c_TestFactoryMaker
+- c_TestFactory (EDITABLE) - your test class should "extend" this, and you can register your object templates here
+- c_TestFactoryAutomation (DO NOT EDIT) - the main database operations, no need to touch
+- c_TestFactoryMaker (DO NOT EDIT) - your object templates "extend" this
 
-Some example classes have been provided to demonstrate how to build differnt kinds of business objects, or Entities, for use in Tests.These can be rewritten / replaced as needed:
+Some example classes have been provided to demonstrate how to build different kinds of business objects, or Entities, for use in Tests. These can be rewritten / replaced as needed:
 - c_TestFactory_Users (like business users)
 - c_TestFactory_CoreUsers (like sys admin)
 - c_TestFactory_SalesCloud (accounts, contacts, optys, customers with contacts etc.)
+
+Finally, a sample unit test has been provided
+- myProject_SampleUnitTest
 
 The next sections will walk through the function of the factory classes and explain how the framework is used.
 
 ## c_TestFactory 
 Does three jobs:
-1. Manage Test Context
-2. Keep a register of the Entities used to generate test data
-3. Allow a test to generate sObjects from these entities
-4. Insert the generated objects, grouping DML and automatically building relationships between sObjects (this is the clever bit)
+1. Allow tests to generate data
+2. Manage Test Context
+3. Keep a register of the Entities used to generate test data
 
-#### 1. Test Context
+#### 1. Test use the factory to generate data
+This class taps into the maker and automation classes to automate the generation of any data requesed in a test. A test gain access to the factory by EXTENDING from this class:
+
+@isTest
+public class myProject_SampleUnitTest extends c_TestFactory {
+}
+
+The following two methods are available 
+Create data in memory: "Make"
+- make(Entity.MY_OBJECT_NAME) - creates a default sObject of MY_OBJECT_NAME in memory from the MY_OBJECT_NAME template
+- make(Entity.MY_OBJECT, new sObject(someField='my override'); - optional, allows pass in of an sObject to override default values, can set any valid field this way, including relationship and allows passing of other sObjects in memory)
+
+and then insert everything in memory to the database: "Run"
+- Run() - inserts everything in memory and flushes the buffer
+
+For a working example, see the example unit test included in the code package.
+
+#### 2. Test Context
 Good tests run in a consistent context, ie predictable values such as language, country, email encoding formats, data volumes. This ensures that you are able to vary the context of the tests being run in a predictable way, both as a developer and a tester.
 
 The test factory uses a custom metadata table “Test Settings” *c_TestSettings__mdt*
@@ -76,7 +96,7 @@ In this table you create a context with the following fields that are looked up 
 
 The test factory will use the most recently created row marked *Active* and store these in static fields (so that you can override them as needed).
 
-#### 2. Keep a register of the Entities used to generate test data
+#### 3. Keep a register of the Entities used to generate test data
 The class contains an ENUM called Entity, this lists all the busines objects your tests can use to generate data as friendly names, and also represents the order in which the objects will be inserted to the database. (Its also where you append new objects to as you develop them):
 
 ```Apex
@@ -107,19 +127,22 @@ These are mapped to classes that extend the TestFactoryMaker interface, which ar
     ...
 ```
 
+## c_TestFactoryAutomation
+1. Allow a test to generate sObjects from these entities
+2. Insert the generated objects, grouping DML and automatically building relationships between sObjects (this is the clever bit)
 
-#### 3. Allow a test to generate sObjects from these entities
-Each of these Entities is mapped to a class to generate the sObject data. The purpose of having this index allows the Factory to have a single point for developers to "make" sobjects from these Entities in an automated way.
+#### 1. Allow a test to generate sObjects from these entities
+Each of these Entities is mapped to a class to generate the sObject data in c_TestFactory. The purpose of having this index allows the automation to have a single point for developers to "make" sobjects from these Entities in an automated way.
 
-- As Entities are registered here a common "make" method in the factory allows a test to call up any of these
+- As Entities are registered here a common "make" method in the factory allows a test to call up any of these. The automation class executes this making process to create an entity in working memory.
 
-#### 4. Insert the generated objects, grouping DML and automatically building relationships between sObjects (this is the clever bit)
+#### 2. Insert the generated objects, grouping DML and automatically building relationships between sObjects (this is the clever bit)
 - A generic "run" method is then called that loops through all the "made" objects and inserts them into the database.
 - The "run" is called, the queue of objects is processed, grouped by name, and reflection is used to automatically link up any ID's while they are inserted into the database.
 
 ```Apex
 @isTest
-public class c_TestFactory_zzz_SampleUnitTest extends c_TestFactory {
+public class exampleTest extends c_TestFactory {
 
     @TestSetup
     public static void setUp() {
@@ -146,8 +169,6 @@ public class c_TestFactory_zzz_SampleUnitTest extends c_TestFactory {
 This lean class provides an interface so that the factory can automate the building of Entities, both complex and simple.
 
 An Entity's sObjects are built using 'maker' classes, simple classes extending c_TestFactoryMaker. 
-
-Creating a new Entity for tests is ridiculously easy. 
 
 To create a new Entity template:
 
