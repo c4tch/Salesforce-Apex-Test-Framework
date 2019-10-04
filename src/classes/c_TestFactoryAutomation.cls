@@ -38,8 +38,6 @@ public virtual class c_TestFactoryAutomation {
     public static sObject make(c_TestFactory.Entity businessObjectToCreate, sObject sourceObject) {
         c_TestFactoryMaker businessObject = c_TestFactory.makers.get(businessObjectToCreate);
         return businessObject.make(sourceObject);
-        // return businessObject.pop(); // replaced by get()[0] to return the FIRST rather than LAST item from the list
-        // return businessObject.get()[0]; // Get first incase the object creates a long list of items, like a composite list
     }
 
     // Method "getSObjectList" / returns a total list of ALL sObjects created for an entity template
