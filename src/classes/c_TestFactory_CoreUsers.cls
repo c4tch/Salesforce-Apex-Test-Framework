@@ -10,10 +10,10 @@
 
 public class c_TestFactory_CoreUsers {
 
-    /**
-    * Administrator 
+/**
+    * Standard User 
     **/
-    public class StandardSystemAdmin extends c_TestFactoryMaker  {
+    public class StandardUser extends c_TestFactoryMaker  {
 
         sObject defaults()
         {
@@ -23,8 +23,8 @@ public class c_TestFactory_CoreUsers {
             
             // Default values
             rec.Alias = 'SysAdmin';
-            rec.UserName = rec.Alias + '@'+ orgId+'.any.test.com';
-            rec.ProfileId = profileIdByName('System Administrator');
+            rec.UserName = rec.Alias + '@'+ orgId+'.anytest.com';
+            rec.ProfileId = profileIdByName('Standard User');
 
             rec.Email = rec.Alias + '@any.test.com';
             rec.FirstName = 'Admin';
@@ -36,6 +36,48 @@ public class c_TestFactory_CoreUsers {
             rec.TimeZoneSidKey = TIMEZONE_SID_KEY;
 
             return (sObject) rec;
+        }
+
+        // Custom maker method allowing us to set the username based on any custom alias value provided
+        // making it easier to identify records created
+        public override sObject make(sObject sourceObject) {
+
+            // get and merge defaults
+            sObject rec = (sObject) defaults();
+            sourceObject = mergeFields(rec, sourceObject);
+
+            // Custom logic to Update the username based on Alias if it's not the same as the default
+            if (((User)sourceObject).Alias!=null && ((User)sourceObject).username == ((User)rec).username) {
+                String orgId = UserInfo.getOrganizationId();
+                ((User)sourceObject).username = ((User)sourceObject).Alias + '@'+ orgId+'.anytest.com';
+            }
+
+            // Add to the Templates's list of records created and return the result for this record
+            add(sourceObject);
+
+            return (sObject) sourceObject;
+        }
+    }
+
+
+    /**
+    * Administrator - An example of inherriting from another object
+    **/
+    public class StandardSystemAdmin extends c_TestFactoryMaker  {
+
+        sObject defaults() {
+            // Default object
+            User rec = new User();
+            rec.Alias = 'SysAdmin';
+            rec.ProfileId = profileIdByName('System Administrator');
+            return (sObject) rec;
+        }
+        public override sObject make(sObject sourceObject) {
+            // Use the admin defaults and merge them with a standard user
+            sObject rec = (sObject) defaults();
+            sourceObject = mergeFields(rec, sourceObject);
+            c_Testfactory.make(Entity.STANDARD_USER, sourceObject); // no need to call 'add' next as the make method does this for us
+            return sourceObject;
         }
     }
 }
