@@ -51,7 +51,7 @@ public abstract class c_TestFactoryMaker extends c_TestFactory {
     public sObject getDefaults() {
         return (sObject) defaults();
     }
-    
+
     /**
     * Store each sObject created 
     **/
@@ -101,9 +101,9 @@ public abstract class c_TestFactoryMaker extends c_TestFactory {
     // Get Profile -  common for user creation. Use sparringly due to DML; results are cached for the transaction.
     public static String profileIdByName(String profileName) {
         if(!profilesByName.containsKey(profileName)) {
-            Profile[] p = [SELECT Id FROM Profile WHERE Name = :profileName];
-            if (p!=null && !p.IsEmpty())
-                profilesByName.put(profileName, p[0].Id);
+            for(Profile p : [SELECT Id, Name FROM Profile limit 999]) {
+                profilesByName.put(p.Name, p.Id);
+            }
         }
         return profilesByName.get(profileName);
     }
