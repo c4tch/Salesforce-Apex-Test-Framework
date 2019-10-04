@@ -46,6 +46,13 @@ public abstract class c_TestFactoryMaker extends c_TestFactory {
     abstract sObject defaults();
 
     /**
+    * Access default value method without committing to the list
+    **/
+    public sObject getDefaults() {
+        return (sObject) defaults();
+    }
+    
+    /**
     * Store each sObject created 
     **/
 

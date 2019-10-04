@@ -45,6 +45,12 @@ public virtual class c_TestFactoryAutomation {
         return c_TestFactory.makers.get(businessObjectToCreate).get();
     }
 
+    // Method "getDefaults" / returns the default values for an object, merging them with the source object. Does not add to the factory list. Used for overloading / using another object's default values.
+    public static sObject getDefaults(c_TestFactory.Entity businessObjectToGet) {
+        c_TestFactoryMaker businessObject = c_TestFactory.makers.get(businessObjectToGet);
+        return businessObject.getDefaults();
+    }
+
     /**
     * Run the factory - automating production of entities
     **/
