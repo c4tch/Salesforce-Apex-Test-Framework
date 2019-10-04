@@ -73,11 +73,27 @@ public class c_TestFactory_CoreUsers {
             return (sObject) rec;
         }
         public override sObject make(sObject sourceObject) {
-            // Use the admin defaults and merge them with a standard user
+            // Use the admin defaults and merge them with a standard user so we dont have to repeat code
             sObject rec = (sObject) defaults();
             sourceObject = mergeFields(rec, sourceObject);
             c_Testfactory.make(Entity.STANDARD_USER, sourceObject); // no need to call 'add' next as the make method does this for us
             return sourceObject;
+        }
+    }
+
+    /**
+    * ReadOnly - An example of inherriting only the defaults from another object
+    **/
+    public class ReadOnly extends c_TestFactoryMaker  {
+
+        sObject defaults() {
+            // Use another objects default values using c_Testfactory.getDefauts(); 
+            // Do this when you only want to clone the default values from another object
+            // but not inherrit any custom "make" logic like in the Standard System Admin example above.
+            // In this case we will just choose a diffent profile and stick with the standard "make" - implementing no custom logic.
+            User rec = c_Testfactory.getDefaults(Entity.STANDARD_USER);
+            rec.ProfileId = getProfileIdByName('Read Only');
+            return (sObject) rec;
         }
     }
 }

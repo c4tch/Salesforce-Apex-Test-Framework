@@ -24,8 +24,7 @@ public virtual class c_TestFactory extends c_TestFactoryAutomation {
     public enum Entity {
         //...The order is IMPORTANT!!! It defines the order of the DML. 
         //   If you need one object inserted before another, this _must_ be reflected here.
-        ADMIN_USER
-        ,COUNTRY_USER
+        STANDARD_USER, ADMIN_USER, READ_ONLY
         ,SALES_ACCOUNT
         ,SALES_CONTACT
         ,SALES_OPPORTUNITY
@@ -41,8 +40,9 @@ public virtual class c_TestFactory extends c_TestFactoryAutomation {
     **/
     public static final Map<Entity, c_TestFactoryMaker> makers = new Map<Entity, c_TestFactoryMaker> {
             /*...Map your Entity labels to their maker class here...*/
-            Entity.ADMIN_USER => new c_TestFactory_CoreUsers.StandardSystemAdmin()
-            ,Entity.COUNTRY_USER => new c_TestFactory_Users.CountryUser()
+            Entity.STANDARD_USER => new c_TestFactory_CoreUsers.StandardUser()
+            ,Entity.ADMIN_USER => new c_TestFactory_Users.StandardSystemAdmin()
+            ,Entity.READ_ONLY => new c_TestFactory_Users.ReadOnly()
             ,Entity.SALES_ACCOUNT => new c_TestFactory_SalesCloud.SalesAccount()
             ,Entity.SALES_CONTACT  => new c_TestFactory_SalesCloud.SalesContact()
             ,Entity.SALES_OPPORTUNITY  => new c_TestFactory_SalesCloud.SalesOpportunity()
