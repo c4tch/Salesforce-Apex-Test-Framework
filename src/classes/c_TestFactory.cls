@@ -12,7 +12,8 @@
   VERSION     AUTHOR           DATE            DETAIL
   1.0         Matt Evans       7/12/2018       Abstracted from the Factory class to make it easier to handle changes
   1.1         Matt Evans       2/10/2019       Composition improved to make Entity directly accessible when inherriting from TestFactoryMaker
-  1.2         Matt Evans       3/10/2019       Refactored to simplify the footprint of the data
+  1.2         Matt Evans       9/9/2019        Introduced reflection to connect sObject son relational fields to ID fields (ex. Contact.Account to Contact.AccountId). Fixed an issue with creating composite objects.   
+  1.3         Matt Evans       3/10/2019       Refactored to simplify the footprint of the data
 */
 
 public virtual class c_TestFactory extends c_TestFactoryAutomation {
