@@ -1,5 +1,10 @@
 # A Salesforce Apex Unit Test Framework for Agile Teams
 
+## Important notice for performance
+Since API v 43, Salesforce has been seeing CPU issues with describe calls. In order to work around this, optimisations have been made to this code (you can see these in the CPU Improvement branch recently merged). Describe calls are still used however, and it is resommended that the critical update in Spring '20, "Use Improved Schema Caching" is enabled in your org.
+
+More information can be found in this KB  article: https://success.salesforce.com/issues_view?id=a1p3A000001RXBZQA4&title=sobjecttype-getdescribe-and-sobjectfield-getdescribe-increase-apex-cpu-consumption-in-api-version-44
+
 ## About
 This project provides a test framework for for Apex unit tests on the Salesforce lightning platform. The framework provides a scaffold for automating and reusing test data to make the development lifecycle more predictable and efficient. 
 
