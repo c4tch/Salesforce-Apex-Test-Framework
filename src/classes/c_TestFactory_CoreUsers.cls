@@ -89,7 +89,7 @@ public class c_TestFactory_CoreUsers {
         sObject defaults() {
             // Use another objects default values using c_Testfactory.getDefauts(); 
             // Do this when you only want to clone the default values from another object
-            // but not inherrit any custom "make" logic like in the Standard System Admin example above.
+            // but you DON'T want to inherrit any custom "make" logic like in the Standard System Admin example above.
             // In this case we will just choose a diffent profile and stick with the standard "make" - implementing no custom logic.
             User rec = c_Testfactory.getDefaults(Entity.STANDARD_USER);
             rec.ProfileId = getProfileIdByName('Read Only');
