@@ -66,10 +66,17 @@ public virtual class c_TestFactoryAutomation {
     public static void run(Boolean clearObjects) {
         // Create each set of business objects in order of the c_TestFactory.Entity ENUM
         for (c_TestFactory.Entity businessObjectToCreate : c_TestFactory.Entity.values()) {
-            System.Debug(LoggingLevel.INFO,'@@ Create c_TestFactory.Entity '+businessObjectToCreate+ ' size '+c_TestFactory.makers.get(businessObjectToCreate).get().size());
-            if (c_TestFactory.makers.get(businessObjectToCreate).get().size()>0) {
-                createEntity(businessObjectToCreate, clearObjects);
+            
+            // Create Entities - note that we skip the test entities when not running tests
+            if ((businessObjectToCreate != TEST_ACCOUNT && businessObjectToCreate != TEST_CONTACT) || Test.isRunningTest() )
+                
+                //System.Debug(LoggingLevel.INFO,'@@ Create c_TestFactory.Entity '+businessObjectToCreate+ ' size '+c_TestFactory.makers.get(businessObjectToCreate).get().size());
+                if (c_TestFactory.makers.get(businessObjectToCreate).get().size()>0) {
+                    createEntity(businessObjectToCreate, clearObjects);
+                }
+                
             }
+
         }
     }
 

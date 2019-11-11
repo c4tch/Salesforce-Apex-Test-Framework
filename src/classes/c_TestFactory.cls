@@ -29,6 +29,7 @@ public virtual class c_TestFactory extends c_TestFactoryAutomation {
         ,SALES_CONTACT
         ,SALES_OPPORTUNITY
         ,CUSTOMER
+        ,TEST_ACCOUNT, TEST_CONTACT // DO NOT REMOVE, these are required for unit testing the framework
         //...Add more here as you go...
     }
 
@@ -47,6 +48,8 @@ public virtual class c_TestFactory extends c_TestFactoryAutomation {
             ,Entity.SALES_CONTACT  => new c_TestFactory_SalesCloud.SalesContact()
             ,Entity.SALES_OPPORTUNITY  => new c_TestFactory_SalesCloud.SalesOpportunity()
             ,Entity.CUSTOMER  => new c_TestFactory_SalesCloud.Customer()
+            ,Entity.TEST_ACCOUNT  => new c_TestFactory_Test.TestAccount() // DO NOT REMOVE, these are required for unit testing the framework
+            ,Entity.TEST_CONTACT  => new c_TestFactory_Test.TestContact() // DO NOT REMOVE, these are required for unit testing the framework
             //...Add more here as you go...*/
     };
 
