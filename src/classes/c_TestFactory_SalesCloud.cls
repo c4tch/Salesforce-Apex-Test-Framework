@@ -2,7 +2,7 @@
  @Name: c_TestFactory_SalesCloud.cls
  @TestedBy: Implementing in a test class
  @Description:
-  TestFactory for Sales Cloud objects for the LMS project namespace
+  Example TestFactory for Sales Cloud objects
  @History
   VERSION     AUTHOR           DATE            DETAIL
   1.0         Matt Evans       7/12/2018       Draft
