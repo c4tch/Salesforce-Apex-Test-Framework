@@ -164,7 +164,7 @@ public class c_TestFactory_Test {
 
     /*
     * Automation
-    * Check the test factory by adding additional sample object templates (an Account)
+    * Check the test factory by adding additional sample object templates (an Account with a Contact)
     * Simulate mixed dml and relationships
     */
 

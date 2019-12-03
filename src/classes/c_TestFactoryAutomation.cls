@@ -66,17 +66,11 @@ public virtual class c_TestFactoryAutomation {
     public static void run(Boolean clearObjects) {
         // Create each set of business objects in order of the c_TestFactory.Entity ENUM
         for (c_TestFactory.Entity businessObjectToCreate : c_TestFactory.Entity.values()) {
-            
-            // Create Entities - note that we skip the test entities when not running tests
-            if ((businessObjectToCreate != TEST_ACCOUNT && businessObjectToCreate != TEST_CONTACT) || Test.isRunningTest() )
-                
-                //System.Debug(LoggingLevel.INFO,'@@ Create c_TestFactory.Entity '+businessObjectToCreate+ ' size '+c_TestFactory.makers.get(businessObjectToCreate).get().size());
-                if (c_TestFactory.makers.get(businessObjectToCreate).get().size()>0) {
-                    createEntity(businessObjectToCreate, clearObjects);
-                }
-                
+            // Create Entities
+            //System.Debug(LoggingLevel.INFO,'@@ Create c_TestFactory.Entity '+businessObjectToCreate+ ' size '+c_TestFactory.makers.get(businessObjectToCreate).get().size());
+            if (c_TestFactory.makers.get(businessObjectToCreate).get().size()>0) {
+                createEntity(businessObjectToCreate, clearObjects);
             }
-
         }
     }
 
@@ -103,13 +97,12 @@ public virtual class c_TestFactoryAutomation {
 
         // Sort the list of sobject record by Type, in order of discovery (FIFO)
         // - This allows DML to be run on each type of sObject record, and Id's to be populated to enable records to be joined
-
         List<String> createOrder = new List<String>();
         Map<String, sObject[]> collections_INSERT = new map<String, sObject[]>();
         Map<String, sObject[]> collections_UPDATE = new map<String, sObject[]>();
 
         // Speed up the list by indexing relationsional field map by sObjects invovled
-        // This is very fast, but will we get different SObject types in the class? TODO: Work it out!
+        // - This is very fast, but will we get different SObject types in the class? TODO: Yes, it's possible, however executing run() to flush the cashe fixes the problem
         Set<String> sObjectTokens = new Set<String>();
         for (sObject o : objs) {
             setRelationalFieldMap(o);
