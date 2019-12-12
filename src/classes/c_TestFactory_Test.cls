@@ -103,6 +103,21 @@ public class c_TestFactory_Test {
     }
 
     @IsTest
+    genericTestFactoryMaker() {
+        setDefaultContext();
+
+        // Loop Entities, create one of each. 
+        // Map the sObject type of each. 
+        // Identify a key relation (User, Account, Contact) and map to the sObject type.
+        // Check the getDefault operation, used for cloning 
+        // Using the sObject type of each Entity, create a new set, merging field operation
+        // Run the DML and confirm objects where created
+        // If a key relation has been mapped, attempt to create a related pair
+        // Create the pair and run. This will test for both mixed dml operations and also the id relationship construction.
+        // Validate the relationship ID's survive
+    }
+
+    @IsTest
     testFactoryMaker() {
         setDefaultContext();
 
@@ -122,7 +137,7 @@ public class c_TestFactory_Test {
         
         // ...Get Defaults, useful when cloning settings
         User u = new User();
-        u = (Account)c_TestFactoryMaker.mergeFields(mkr.getDefaults(),(sobject)u);
+        u = (User)c_TestFactoryMaker.mergeFields(mkr.getDefaults(),(sobject)u);
         System.AssertEquals('TestUser', u.LastName, 'Maker did not return defaults as expected');
     }
 
