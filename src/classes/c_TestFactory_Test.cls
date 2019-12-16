@@ -12,6 +12,13 @@
 
 public class c_TestFactory_Test {
 
+    public enum Entity {
+        // Entities only used for Testing
+        TEST_USER, TEST_ACCOUNT, TEST_CONTACT
+    }
+
+    public class 
+
     /*
     Test tempaltes
     */
@@ -107,6 +114,9 @@ public class c_TestFactory_Test {
         setDefaultContext();
 
         // Loop Entities, create one of each. 
+        c_TestFactory.Entity = new enum MyEnum {
+        }
+
         // Map the sObject type of each. 
         // Identify a key relation (User, Account, Contact) and map to the sObject type.
         // Check the getDefault operation, used for cloning 
