@@ -29,7 +29,7 @@ public virtual class c_TestFactory extends c_TestFactoryAutomation {
         ,SALES_CONTACT
         ,SALES_OPPORTUNITY
         ,CUSTOMER
-        //...Add more here as you go...
+        //...Add more here as you go...*/
     }
 
     /********** EDITABLE MAP ********** 
@@ -40,9 +40,9 @@ public virtual class c_TestFactory extends c_TestFactoryAutomation {
     **/
     public static final Map<Entity, c_TestFactoryMaker> makers = new Map<Entity, c_TestFactoryMaker> {
             /*...Map your Entity labels to their maker class here...*/
-            Entity.STANDARD_USER => new c_TestFactory_CoreUsers.StandardUser()
-            ,Entity.ADMIN_USER => new c_TestFactory_Users.StandardSystemAdmin()
-            ,Entity.READ_ONLY => new c_TestFactory_Users.ReadOnly()
+            Entity.STANDARD_USER => new c_TestFactory_StandardUsers.StandardUser()
+            ,Entity.ADMIN_USER => new c_TestFactory_StandardUsers.StandardSystemAdmin()
+            ,Entity.READ_ONLY => new c_TestFactory_StandardUsers.ReadOnly()
             ,Entity.SALES_ACCOUNT => new c_TestFactory_SalesCloud.SalesAccount()
             ,Entity.SALES_CONTACT  => new c_TestFactory_SalesCloud.SalesContact()
             ,Entity.SALES_OPPORTUNITY  => new c_TestFactory_SalesCloud.SalesOpportunity()

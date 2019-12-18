@@ -17,7 +17,8 @@
   1.0         Matt Evans       7/12/2018       Initial pattern
   1.1         Matt Evans       10/9/2019       Optimised maker with minor tweaks for return values
   1.2         Matt Evans       17/9/2019       Removed descibe calls in loops to and sObject references to improve CPU time
-  1.2.1       Matt Evans       30/9/2019       Tidy & included getProprofileIdByNamefile and getRoleIdByName calls in here as they are so commonly needed
+  1.2.1       Matt Evans       30/9/2019       Tidy & included profileIdByNamefile and roleIdByName calls in here as they are so commonly needed
+  1.2.2       Matt Evans       17/12/2019      Minor updates, no functional changes
 */
 
 public abstract class c_TestFactoryMaker extends c_TestFactory {
@@ -26,7 +27,7 @@ public abstract class c_TestFactoryMaker extends c_TestFactory {
     * Maker methods
     **/
 
-    // Optional override "make" method
+    // Overridable "make" method
     public virtual sObject make(sObject sourceObject) {
 
         // Process the custom create method
@@ -55,14 +56,12 @@ public abstract class c_TestFactoryMaker extends c_TestFactory {
     /**
     * Store each sObject created 
     **/
-
     sObject[] data = new List<sObject>();
 
     // Getters and setters to access and manage the stored sObjects
 
     public void add(sObject objectToAdd) {
         data.add(objectToAdd);
-        //getToken();
     }
     public sObject[] get() {
         return data;
@@ -80,11 +79,11 @@ public abstract class c_TestFactoryMaker extends c_TestFactory {
     * Utility methods 
     **/
     // Incorporate fields into passed object
-    public static sObject mergeFields(sObject source, sObject destination) {
+    public static sObject mergeFields (sObject source, sObject destination) {
         return mergeFields(source, destination, false);
     }
 
-    static sObject mergeFields(sObject source, sObject destination, boolean overwrite) {
+    public static sObject mergeFields(sObject source, sObject destination, boolean overwrite) {
         if (destination == null) {
             destination = source;
             return destination;
@@ -126,5 +125,6 @@ public abstract class c_TestFactoryMaker extends c_TestFactory {
     **/
     public class TestFactoryBaseException extends Exception {
     }
+    
 //*/
 }

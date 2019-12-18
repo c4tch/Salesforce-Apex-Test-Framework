@@ -45,7 +45,7 @@ public virtual class c_TestFactoryAutomation {
         return c_TestFactory.makers.get(businessObjectToCreate).get();
     }
 
-    // Method "getDefaults" / returns the default values for an object, merging them with the source object. Does not add to the factory list. Used for overloading / using another object's default values.
+    // Method "getDefaults" / returns the default values for an object without adding to the factory list. Used for overloading / using another template's default values.
     public static sObject getDefaults(c_TestFactory.Entity businessObjectToGet) {
         c_TestFactoryMaker businessObject = c_TestFactory.makers.get(businessObjectToGet);
         return businessObject.getDefaults();
@@ -66,7 +66,8 @@ public virtual class c_TestFactoryAutomation {
     public static void run(Boolean clearObjects) {
         // Create each set of business objects in order of the c_TestFactory.Entity ENUM
         for (c_TestFactory.Entity businessObjectToCreate : c_TestFactory.Entity.values()) {
-            System.Debug(LoggingLevel.INFO,'@@ Create c_TestFactory.Entity '+businessObjectToCreate+ ' size '+c_TestFactory.makers.get(businessObjectToCreate).get().size());
+            // Create Entities
+            //System.Debug(LoggingLevel.INFO,'@@ Create c_TestFactory.Entity '+businessObjectToCreate+ ' size '+c_TestFactory.makers.get(businessObjectToCreate).get().size());
             if (c_TestFactory.makers.get(businessObjectToCreate).get().size()>0) {
                 createEntity(businessObjectToCreate, clearObjects);
             }
@@ -79,30 +80,75 @@ public virtual class c_TestFactoryAutomation {
     //  - Ex. Pseudo code: [Account 1 followed by the account's Contacts 1,2,3,4; then Account 2 and child Contacts 6,7,8; then Cases; etc.]
 
     static void createEntity(c_TestFactory.Entity businessObjectToCreate, Boolean clearObjects) {
-        //System.debug(LoggingLevel.INFO,'@@ START: Test Factory Create c_TestFactory.Entity '+ businessObjectToCreate +' : clear objects:'+clearObjects+'@@');
-        //System.debug(LoggingLevel.INFO,'@@ CPU time '+System.Limits.getCpuTime());
+        System.debug(LoggingLevel.INFO,'@@ START: Test Factory Create c_TestFactory.Entity '+ businessObjectToCreate +' : clear objects:'+clearObjects+'@@');
+        System.debug(LoggingLevel.INFO,'@@ CPU time '+System.Limits.getCpuTime());
 
-        // Objects to insert when we are ready
+        // Compile all the sObjects created by the Business Object's maker class
+        // - These where generated every time the 'make' method was run.
         sObject[] objs = new List<sObject>();
-
-        // Get all the sObject records from the Business Object's class, generated every time the 'make' method was run
         if (!c_TestFactory.makers.containsKey(businessObjectToCreate)) {
-            // There's a miss match between entities and c_TestFactory.makers. Instead of breaking the whole app we will report the bug and break this loop
-            System.debug(LoggingLevel.ERROR, '@@ The business object '+businessObjectToCreate+' is not mapped to a factory class in the makers map corrcetly. Make sure it is not missing, is spelled correctly or hasnt been removed.');
+            // A miss match between entities and c_TestFactory.makers. 
+            // - Instead of breaking the whole app we will report the bug and break this loop
+            System.debug(LoggingLevel.ERROR, '@@ The business object '+businessObjectToCreate+' is not mapped to a factory class in the makers map corrcetly. Make sure it is not missing, is spelled correctly or has not been removed.');
             return; 
         }
-        // System.debug(LoggingLevel.INFO,'@@ Adding ' + c_TestFactory.makers.get(businessObjectToCreate).get().size() + ' ' + businessObjectToCreate + ' elements to the list');
         objs.addAll(c_TestFactory.makers.get(businessObjectToCreate).get());
 
-        // Sort the list of sobject record by Type, in order of discovery (FIFO)
-        // - This allows DML to be run on each type of sObject record, and Id's to be populated to enable records to be joined
-
+        // Upsert the sobject lists in order, allowing for ID's and external ID's to be created in each transaction
+        // - DML should not be in a loop ;) however it is limited by TYPE and therefore this will not be called more than the number of sObject types being created
         List<String> createOrder = new List<String>();
         Map<String, sObject[]> collections_INSERT = new map<String, sObject[]>();
         Map<String, sObject[]> collections_UPDATE = new map<String, sObject[]>();
+        sortAndLinkSObjects(objs, createOrder, collections_INSERT, collections_UPDATE);
 
-        // Speed up the list by indexing relationsional field map by sObjects invovled
-        // This is very fast, but will we get different SObject types in the class? TODO: Work it out!
+        for (String name : createOrder) {
+            if (collections_UPDATE.containsKey(name) && collections_UPDATE.get(name).size()>0) update (collections_UPDATE.get(name));
+            if (collections_INSERT.containsKey(name) && collections_INSERT.get(name).size()>0) insert (collections_INSERT.get(name));
+        }
+
+        // Clear the list of sObject records on the Business Object
+        // - this is default behaviour, however use "runAndKeepContext" if you want to keep the sObjects on the business objects in memory
+        // - flushing them reduces the amount of working memory, and reduces the amount of repeated DML if run() is called more than once
+        // - if the developer wishes to avoid this, call run(true)
+        if (clearObjects) c_TestFactory.makers.get(businessObjectToCreate).clear();
+
+        System.debug(LoggingLevel.INFO,'@@ END: Test Factory Create c_TestFactory.Entity '+ businessObjectToCreate +' @@');
+    }
+
+
+    /**
+    * Utility methods 
+    * 1. Field merger --- TODO:REMOVE? This is also present in TestFactoryMaker
+    * 2. Map relational fields
+    * 3. Sort and Link sObjects
+    **/
+
+    // Incorporate fields into passed object
+    public static sObject mergeFields(sObject source, sObject destination) {
+        return mergeFields(source, destination, false);
+    }
+    public static sObject mergeFields(sObject source, sObject destination, boolean overwrite) {
+        if (destination==null)
+        {
+            destination = source;
+            return destination;
+        }
+        Map<String, Object> fieldsToValue = source.getPopulatedFieldsAsMap();
+        for (String fieldName : fieldsToValue.keySet()) {
+            if (overwrite || !overwrite && destination.get(fieldName) == null) {
+                destination.put(FieldName, source.get(FieldName));
+            }
+        }
+        return destination;
+    }
+
+    // Sort the list of sobject record by Type, in order of discovery (FIFO) into Insert or Update, and also attempts to create relationships to existing entities with ID's
+    // -The method will map any relationships found, and attempt to link any valid relations, ex. a Contact to an Account in the list
+    // -It will also use the Tokens to create a 'create order' list, so that records can be inserted based on the order of their insert into the list, which is important for dependent relationships.
+    public static void sortAndLinkSObjects(sObject[] objs, List<String> createOrder, Map<String, sObject[]> collections_INSERT, Map<String, sObject[]> collections_UPDATE) {
+ 
+        // Speed up the list by indexing relation field map by sObjects invovled
+        // - This is very fast, but will we get different SObject types in the class? TODO: Yes, it's possible, however executing run() to flush the cashe fixes the problem
         Set<String> sObjectTokens = new Set<String>();
         for (sObject o : objs) {
             setRelationalFieldMap(o);
@@ -147,52 +193,7 @@ public virtual class c_TestFactoryAutomation {
 
                 collections_INSERT.put(name, objectsByType);
             }
-
         }
-
-        // Upsert the sobject lists in order, allowing for ID's and external ID's to be created in each transaction
-        // - DML should not be in a loop ;) but we are limiting this by TYPE and therefore this should not be called more than the number of sObject types being created
-
-        for (String name : createOrder) {
-            
-            if (collections_UPDATE.containsKey(name) && collections_UPDATE.get(name).size()>0) update (collections_UPDATE.get(name));
-            if (collections_INSERT.containsKey(name) && collections_INSERT.get(name).size()>0) insert (collections_INSERT.get(name));
-        }
-
-
-        // Clear the list of sObject records on the Business Object
-        // - this is default behaviour, however use "runAndKeepContext" if you want to keep the sObjects on the business objects in memory
-        // - flushing them reduces the amount of working memory, and reduces the amount of repeated DML if run() is called more than once
-        // - if the developer wishes to avoid this, call run(true)
-        if (clearObjects) c_TestFactory.makers.get(businessObjectToCreate).clear();
-
-        //System.debug(LoggingLevel.INFO,'@@ END: Test Factory Create c_TestFactory.Entity '+ businessObjectToCreate +' @@');
-    }
-
-
-    /**
-    * Utility methods 
-    * 1. Field merger
-    * 2. Map relational fields
-    **/
-
-    // Incorporate fields into passed object
-    public static sObject mergeFields(sObject source, sObject destination) {
-        return mergeFields(source, destination, false);
-    }
-    static sObject mergeFields(sObject source, sObject destination, boolean overwrite) {
-        if (destination==null)
-        {
-            destination = source;
-            return destination;
-        }
-        Map<String, Object> fieldsToValue = source.getPopulatedFieldsAsMap();
-        for (String fieldName : fieldsToValue.keySet()) {
-            if (overwrite || !overwrite && destination.get(fieldName) == null) {
-                destination.put(FieldName, source.get(FieldName));
-            }
-        }
-        return destination;
     }
 
 
