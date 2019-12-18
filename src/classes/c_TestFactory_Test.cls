@@ -1,92 +1,26 @@
 /**
- @Name: c_TestFactory_Test.cls
- @Testing: c_TestFactory, c_TestAutomation, c_TestFactoryMaker, c_TestFactory_CoreUsers
- @Description: Registry of Business Objects 
- - The Test Factory package. 
- - Should NOT test the objects you create for your own projects! Create a separate test class for those.
+ * @File Name          : c_TestFactory_Test.cls
+ * @Description        : Tests the core test factory package and automates the maker objects.
+ * @Author             : Matthew Evans
+ * @Group              : 
+ * @Last Modified By   : Matthew Evans
+ * @Last Modified On   : 12/18/2019, 10:40:16 AM
+ * @Modification Log   : 
+ * Ver       Date            Author      		    Modification
+ * 1.0    12/17/2019   Matthew Evans     Initial Version
+**/
 
- @History
-  VERSION     AUTHOR           DATE            DETAIL
-  1.0         Matt Evans       1/11/2019       Initial draft
-*/
-
+@IsTest
 public class c_TestFactory_Test {
-
-    public enum Entity {
-        // Entities only used for Testing
-        TEST_USER, TEST_ACCOUNT, TEST_CONTACT
-    }
-
-    public class 
-
-    /*
-    Test tempaltes
-    */
-    class testUser extends c_TestFactoryMaker {
-        sObject defaults() {
-            // Default object
-            User rec = new User();
-            String orgId = UserInfo.getOrganizationId();
-            
-            // Default values
-            rec.Alias = 'SysAdmin';
-            rec.UserName = rec.Alias + '@'+ orgId+'.anytest.com';
-            rec.ProfileId = profileIdByName('Standard User');
-
-            rec.Email = rec.Alias + '@any.test.com';
-            rec.FirstName = 'Admin';
-            rec.LastName = 'User';
-
-            rec.EmailEncodingKey = EMAIL_ENCODING_KEY; // Context values taken from the Factory
-            rec.LanguageLocaleKey = LANGUAGE_LOCALE_KEY;
-            rec.LocaleSidKey = LOCALE_SID_KEY;
-            rec.TimeZoneSidKey = TIMEZONE_SID_KEY;
-
-            return (sObject) rec;
-        }
-    }
-    
-    public class testAccount extends c_TestFactoryMaker {
-         // Mandatory minimum default set up, returns an sObject, in this case a default Account for the Sales Cloud
-        sObject defaults() {
-
-            // Default object
-            Account rec = new Account();
-
-            // Default values
-            rec.Name = 'A Customer Account';
-            rec.ShippingStreet = 'Nr 1 Some Street';
-            rec.ShippingPostalCode = '11111';
-            rec.ShippingCity = 'A City';
-            rec.ShippingCountry = COUNTRY_NAME;
-
-            return (sObject) rec;
-        }
-    }
-
-    public class testContact extends c_TestFactoryMaker {
-
-        // Mandatory minimum default set up, returns an sObject, in this case a default Contact for the Sales Cloud
-        sObject defaults() {
-            // Default object
-            Contact rec = new Contact();
-
-            rec.FirstName = 'Uri';
-            rec.LastName = 'Steck';
-            rec.Email = 'thegreatest@climber.example.com';
-            
-            return (sObject) rec;
-        }
-    }
 
     /*
     Unit Tests
     */
     @IsTest
-    setContext() {
-        setDefaultContext();
+    static void setContext() {
+        c_TestFactory.setDefaultContext();
 
-        // Query custom meta data
+        // Query custom meta data   
 
         // Validate context is set
         System.assert(c_TestFactory.BULKIFY_TESTS != null, 'BULKIFY_TESTS not set in Test Settings (Custom Metadata Type)');
@@ -105,54 +39,12 @@ public class c_TestFactory_Test {
         c_TestFactory.LANGUAGE_LOCALE_KEY = c_TestFactory.LANGUAGE_LOCALE_KEY == 'FI' ? 'SV' : 'FI';
         
         // Basic test using the Core Users lib, which should follow the framework
-        User u = c_TestFactory.make(c_TestFactory.Entity.STANDARD_USER);
+        User u = (User)c_TestFactory.make(c_TestFactory.Entity.STANDARD_USER);
         System.assertEquals(c_TestFactory.LANGUAGE_LOCALE_KEY,u.LanguageLocaleKey, 'Locale key not set on standard user');
     }
 
     @IsTest
-    genericTestFactoryMaker() {
-        setDefaultContext();
-
-        // Loop Entities, create one of each. 
-        c_TestFactory.Entity = new enum MyEnum {
-        }
-
-        // Map the sObject type of each. 
-        // Identify a key relation (User, Account, Contact) and map to the sObject type.
-        // Check the getDefault operation, used for cloning 
-        // Using the sObject type of each Entity, create a new set, merging field operation
-        // Run the DML and confirm objects where created
-        // If a key relation has been mapped, attempt to create a related pair
-        // Create the pair and run. This will test for both mixed dml operations and also the id relationship construction.
-        // Validate the relationship ID's survive
-    }
-
-    @IsTest
-    testFactoryMaker() {
-        setDefaultContext();
-
-        // Makes sure we can create business object templates
-        c_TestFactoryMaker mkr = new testUser();
-
-        // Create an object and check the maker interface is working as expected
-        // ...Make
-        mkr.make(new User(LastName = 'TestUser'));
-
-        // ...Check and manipulate the list of 'made' objects after running the make command
-        System.Assert(mkr.get().size()==1, 'Test User object was not added to the stack');
-        System.AssertEquals('TestUser', mkr.pop().get('LastName'), 'Test user was not added to the stack properly');
-        System.AssertEquals('TestUser', mkr.pop().get('LastName'), 'Test user was not added to the stack properly');
-        mkr.clear();
-        System.AssertEquals(0, mkr.get().size()), 'Stack was not cleared when requested');
-        
-        // ...Get Defaults, useful when cloning settings
-        User u = new User();
-        u = (User)c_TestFactoryMaker.mergeFields(mkr.getDefaults(),(sobject)u);
-        System.AssertEquals('TestUser', u.LastName, 'Maker did not return defaults as expected');
-    }
-
-    @IsTest
-    mergeFields() {
+    static void mergeFields() {
         // Merge field from one instance of an object into another
         Account source = new Account(Name = '1234');
         Account destination = new Account(Phone = '5678');
@@ -173,39 +65,83 @@ public class c_TestFactory_Test {
     }
 
     @IsTest 
-    profileIdByName(){
+    static void profileIdByName(){
         // I can get the ID of a profile by name
         Profile p = [select id, Name from Profile limit 1];
-        System.AssertEqualds(r.Id, c_TestFactoryMaker.profileIdByName(r.Name),'Role ID not retreived for role "'+r.Name+'"');
+        System.AssertEquals(p.Id, c_TestFactoryMaker.profileIdByName(p.Name),'Profile ID not retreived for Profile "'+p.Name+'"');
     } 
 
     @IsTest
-    roleIdByName() {
+    static void roleIdByName() {
         // I can get the ID of a role by Name
-        Role r = [select id,Name from Role limit 1];
-        System.AssertEqualds(r.Id, c_TestFactoryMaker.roleIdByName(r.Name),'Role ID not retreived for role "'+r.Name+'"');
+        UserRole r = [select id,Name from UserRole limit 1];
+        System.AssertEquals(r.Id, c_TestFactoryMaker.roleIdByName(r.Name),'Role ID not retreived for role "'+r.Name+'"');
+    }
+
+    @isTest
+    static void sortAndLinkSObjects() {
+        
+        Account a = new Account(Name = 'Stuart', Id='00100000000014C');
+        Contact c = new Contact(LastName = 'Evans', Account = a); // objects may be associated in this way before they have an id in practice
+        
+        sObject[] objs = new List<Sobject>{a,c};
+        
+        List<String> createOrder = new List<String>();
+        Map<String, sObject[]> collections_INSERT = new map<String, sObject[]>();
+        Map<String, sObject[]> collections_UPDATE = new map<String, sObject[]>();
+        c_TestFactory.sortAndLinkSObjects(objs, createOrder, collections_INSERT, collections_UPDATE);
+
+        System.AssertEquals (collections_INSERT.get('Contact')[0] , c , 'A new Contact should have been Added to the Insert list');
+        System.AssertEquals (collections_UPDATE.get('Account')[0] , a , 'An exsiting Account should have been Added to the Update list');
+        System.Assert (c.AccountId == a.Id , 'The Contact should have been related to the existing Account record');
     }
 
 
     /*
-    * Automation
-    * Check the test factory by adding additional sample object templates (an Account with a Contact)
-    * Simulate mixed dml and relationships
+    * Scan custom entities for compliance
+    * Checks the indexed templates in c_TestFactory__c conform to some basic functions
     */
 
-    @IsTest()
-    mixedDMLAndRelationships()
-    {
-        setDefaultContext();
-        // Test that objects of different types can be inserted at the same time
-        Account a = c_TestFactory.make(c_TestFactory.Entity.TEST_ACCOUNT, new Account(Name='AccountyMcCountFace'));
-        Contact c = c_TestFactory.make(c_TestFactory.Entity.TEST_CONTACT, new Contact(LastName='McTestFace', Account = a));
-        run();
+    @IsTest
+    static void automateTestingOfEntities() {
+        c_TestFactory.setDefaultContext();
 
-        // Test that object relationships are maintained
-        System.Assert(a.Id !=null, 'Account was not inserted');
+        // Check the Entities in the factory index for default methods 
+        for (c_TestFactory.Entity e : c_TestFactory.Entity.values()) {
+            // Get the factory list before runnign the maker method
+            sObject[] originalFactoryList = c_TestFactory.getSObjectList(e) == null ? new sObject[]{} : c_TestFactory.getSObjectList(e);
 
-        c = [select id, Name, AccountId from Contact limit 1 where id =:c.Id];
-        System.AssertEquals(a.Id, c.AccountId, 'Contact was not inserted with Account Id set');
+            // Check the maker method of each entity returns an sobject
+            sObject s = c_TestFactory.make(e);
+            System.assertNotEquals(s,Null,'No sObject returned by the maker method for Entity '+e);
+
+            // ...Check and manipulate the list of 'made' objects after running the make command
+            sObject[] updatedFactoryList = c_TestFactory.getSObjectList(e) == null ? new sObject[]{} : c_TestFactory.getSObjectList(e);
+            if (originalFactoryList.size() == updatedFactoryList.size()) {
+                System.Debug(LoggingLevel.INFO, '@@ WARNING: Factory class for Entity '+e+' does not add sObjects to the factory direcrtly by invoking the add(sourceObject); method. If this method is overriding "make" check that if you should add this method or if it is calling another factory object (which is acceptable).');
+            }
+
+            if (updatedFactoryList.size()>1) {
+                System.Assert(c_TestFactory.makers.get(e).pop()!=null,'Could not pop an sObject from the maker method');
+                c_TestFactory.makers.get(e).clear();
+                System.AssertEquals(c_TestFactory.makers.get(e).get().size(),0, 'Stack was not cleared when requested');
+            }
+            
+            // Check the default method returns an sObject
+            sObject s2 = c_TestFactory.getDefaults(e);
+            if (s2==null) {
+                System.Debug(LoggingLevel.INFO, '@@ WARNING: No sobject returned for default() method for Entity '+e+'. This is a warning only. This may be deliberate, if this class has a custom "make" method.');
+            }
+        }
+
+        try {
+            // The test doesn't control the templates, so this is for coverage only. 
+            // It is not expected to succeed.
+            c_TestFactory.run();
+        } catch (Exception e) {
+            // Any failures will be output here as warnings only
+            System.Debug(LoggingLevel.INFO, '@@ WARNING: Factory failed to run DML for one or more sObjects. This may be ignored. Exception: '+e);
+        }
     }
+    //*/
 }

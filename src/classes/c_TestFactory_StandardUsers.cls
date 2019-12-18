@@ -1,16 +1,18 @@
 /**
- @Name: c_TestFactory_CoreUsers.cls
- @TestedBy: Implementing in a test class
- @Description:
-  TestFactory Framework, provides templates of User data
- @History
-  VERSION     AUTHOR           DATE            DETAIL
-  1.0         Matt Evans       7/12/2018       System Admin basic user for common classes to use
-*/
+ * @File Name          : c_TestFactory_StandardUsers.cls
+ * @Description        : Provides standard users to extend or inherrit from
+ * @Author             : Matthew Evans
+ * @Group              : 
+ * @Last Modified By   : Matthew Evans
+ * @Last Modified On   : 12/17/2019, 12:13:35 PM
+ * @Modification Log   : 
+ * Ver    Date         Author           Modification
+ * 1.0    12/17/2019   Matthew Evans    Initial Version
+**/
 
-public class c_TestFactory_CoreUsers {
+public class c_TestFactory_StandardUsers {
 
-/**
+    /**
     * Standard User 
     **/
     public class StandardUser extends c_TestFactoryMaker  {
@@ -91,9 +93,10 @@ public class c_TestFactory_CoreUsers {
             // Do this when you only want to clone the default values from another object
             // but you DON'T want to inherrit any custom "make" logic like in the Standard System Admin example above.
             // In this case we will just choose a diffent profile and stick with the standard "make" - implementing no custom logic.
-            User rec = c_Testfactory.getDefaults(Entity.STANDARD_USER);
-            rec.ProfileId = getProfileIdByName('Read Only');
+            User rec = (User)c_Testfactory.getDefaults(Entity.STANDARD_USER);
+            rec.ProfileId = profileIdByName('Read Only');
             return (sObject) rec;
         }
     }
+    //*/
 }

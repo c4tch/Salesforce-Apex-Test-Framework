@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Settings for running unit tests. The first test setting marked as &apos;active&apos; will be used by tests. Ensure at least record one record is active.</description>
+    <fields>
+        <fullName>Active__c</fullName>
+        <defaultValue>true</defaultValue>
+        <description>Marks this as the active test context to use. The most recently modified &apos;Active&apos; record is the one chosen.</description>
+        <externalId>false</externalId>
+        <fieldManageability>SubscriberControlled</fieldManageability>
+        <inlineHelpText>Marks this as the active test context to use. The most recently modified &apos;Active&apos; record is the one chosen.</inlineHelpText>
+        <label>Active</label>
+        <type>Checkbox</type>
+    </fields>
+    <fields>
+        <fullName>BULKIFY_TESTS__c</fullName>
+        <defaultValue>false</defaultValue>
+        <description>Define if tests should run with large data sets or not. Default is FALSE as bulk tests should be run before releases to production.</description>
+        <externalId>false</externalId>
+        <fieldManageability>SubscriberControlled</fieldManageability>
+        <inlineHelpText>Define if tests should run with large data sets or not. Default is FALSE as bulk tests should be run before releases to production.</inlineHelpText>
+        <label>BULKIFY_TESTS</label>
+        <type>Checkbox</type>
+    </fields>
+    <fields>
+        <fullName>COUNTRY_CODE__c</fullName>
+        <defaultValue>&quot;SE&quot;</defaultValue>
+        <description>Country code for test context</description>
+        <externalId>false</externalId>
+        <fieldManageability>SubscriberControlled</fieldManageability>
+        <inlineHelpText>Country code for test context</inlineHelpText>
+        <label>COUNTRY_CODE</label>
+        <length>5</length>
+        <required>true</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>COUNTRY_NAME__c</fullName>
+        <defaultValue>&quot;Sweden&quot;</defaultValue>
+        <description>Country name for test context</description>
+        <externalId>false</externalId>
+        <fieldManageability>SubscriberControlled</fieldManageability>
+        <inlineHelpText>Country name for test context</inlineHelpText>
+        <label>COUNTRY_NAME</label>
+        <length>50</length>
+        <required>true</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>CURRENCY_ISO_CODE__c</fullName>
+        <defaultValue>&quot;EUR&quot;</defaultValue>
+        <description>Default Currency ISO code to be used in test context</description>
+        <externalId>false</externalId>
+        <fieldManageability>SubscriberControlled</fieldManageability>
+        <inlineHelpText>Default Currency ISO code to be used in test context</inlineHelpText>
+        <label>CURRENCY_ISO_CODE</label>
+        <length>7</length>
+        <required>true</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Created__c</fullName>
+        <defaultValue>now()</defaultValue>
+        <description>Timestamp</description>
+        <externalId>false</externalId>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <inlineHelpText>Timestamp</inlineHelpText>
+        <label>Created</label>
+        <required>false</required>
+        <type>DateTime</type>
+    </fields>
+    <fields>
+        <fullName>EMAIL_ENCODING_KEY__c</fullName>
+        <defaultValue>&quot;UTF-8&quot;</defaultValue>
+        <description>Encoding key for sending emails in test context</description>
+        <externalId>false</externalId>
+        <fieldManageability>SubscriberControlled</fieldManageability>
+        <inlineHelpText>Encoding key for sending emails in test context</inlineHelpText>
+        <label>EMAIL_ENCODING_KEY</label>
+        <length>15</length>
+        <required>true</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>LANGUAGE_LOCALE_KEY__c</fullName>
+        <defaultValue>&quot;en_US&quot;</defaultValue>
+        <description>Locale key for language in test context</description>
+        <externalId>false</externalId>
+        <fieldManageability>SubscriberControlled</fieldManageability>
+        <inlineHelpText>Locale key for language in test context</inlineHelpText>
+        <label>LANGUAGE_LOCALE_KEY</label>
+        <length>7</length>
+        <required>true</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>LOCALE_SID_KEY__c</fullName>
+        <defaultValue>&quot;en_US&quot;</defaultValue>
+        <description>The SID locale key for test context ex. en_US</description>
+        <externalId>false</externalId>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <inlineHelpText>The SID locale key for test context ex. en_US</inlineHelpText>
+        <label>LOCALE_SID_KEY</label>
+        <length>7</length>
+        <required>true</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>TIMEZONE_SID_KEY__c</fullName>
+        <defaultValue>&quot;Europe/Helsinki&quot;</defaultValue>
+        <description>The SID key of the timezone to be used in test context, ex. Europe/Helsinki</description>
+        <externalId>false</externalId>
+        <fieldManageability>SubscriberControlled</fieldManageability>
+        <inlineHelpText>The SID key of the timezone to be used in test context, ex. Europe/Helsinki</inlineHelpText>
+        <label>TIMEZONE_SID_KEY</label>
+        <length>50</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <label>Test Setting</label>
+    <pluralLabel>Test Settings</pluralLabel>
+    <visibility>Public</visibility>
+</CustomObject>

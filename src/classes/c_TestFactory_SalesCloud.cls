@@ -105,4 +105,5 @@ public class c_TestFactory_SalesCloud {
             return (sObject) customerAccount;
         }
     }
+    //*/
 }

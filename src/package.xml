@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>c_TestFactory</members>
+        <members>c_TestFactoryAutomation</members>
+        <members>c_TestFactoryMaker</members>
+        <members>c_TestFactory_SalesCloud</members>
+        <members>c_TestFactory_StandardUsers</members>
+        <members>c_TestFactory_Test</members>
+        <members>myProject_SampleUnitTest</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>c_TestSettings__mdt</members>
+        <name>CustomField</name>
+    </types>
+    <types>
+        <members>c_TestSettings.ProductionRelease</members>
+        <name>CustomMetadata</name>
+    </types>
+    <types>
+        <members>c_TestSettings__mdt</members>
+        <name>CustomObject</name>
+    </types>
+    <types>
+        <members>c_TestSettings__mdt-Test Setting Layout</members>
+        <name>Layout</name>
+    </types>
+    <version>47.0</version>
+</Package>

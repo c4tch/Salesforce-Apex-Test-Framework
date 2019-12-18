@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-    <label>Default</label>
+    <label>ProductionRelease</label>
     <protected>false</protected>
     <values>
         <field>Active__c</field>
@@ -24,7 +24,7 @@
     </values>
     <values>
         <field>Created__c</field>
-        <value xsi:type="xsd:dateTime">2019-08-31T11:46:52.000Z</value>
+        <value xsi:type="xsd:dateTime">2019-12-17T09:54:56.000Z</value>
     </values>
     <values>
         <field>EMAIL_ENCODING_KEY__c</field>
