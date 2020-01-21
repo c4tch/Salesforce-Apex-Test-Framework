@@ -1,10 +1,4 @@
 # A Salesforce Apex Unit Test Framework for Agile Teams
-## Notices
-### (21-01-2020) Migration from Metadata format to Source format iminent
-Inline with the DX roadmap all c4tch repos will be moved to source format. A branch will be kept with the 'old' code for prosterity, however a new master will be used. You can expect the change to ocurr within the next few days. 
-
-### (16-12-2019) Unit tests for framework to be included
-One project implementing this solution was reporting the need for the test framework itself to include unit tests. As the framework is extended by you and used in your own tests this was originally considered to be a 'nice to have', however as the request was clear that it was necessary for alpha deploys and initial set up it made sense. This has been completed and will be added to the repo Jan 2020.
 
 ### Important notice for performance
 Since API v 43, Salesforce has been seeing CPU issues with describe calls. In order to work around this, optimisations have been made to this code (you can see these in the CPU Improvement branch recently merged). Describe calls are still used however, and it is recommended that the critical update in Spring '20, "Use Improved Schema Caching" is enabled in your org.
@@ -370,3 +364,9 @@ Note that as this is anon apex, there is no class to extend using c_TestFactory,
 Database.rollback(s);
 ```
 
+## Notices
+### (21-01-2020) Migration from Metadata format to Source format COMPLETE
+Inline with the DX roadmap all c4tch repos will be moved to source format, including this one. A branch will be kept with the 'old' code for prosterity, however a new master will be used. You can expect the change to ocurr within the next few days. 
+
+### (16-12-2019) Unit tests for framework to be included COMPLETE
+One project implementing this solution was reporting the need for the test framework itself to include unit tests. As the framework is extended by you and used in your own tests this was originally considered to be a 'nice to have', however as the request was clear that it was necessary for alpha deploys and initial set up it made sense. This has been completed and will be added to the repo Jan 2020.
