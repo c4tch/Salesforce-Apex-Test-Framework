@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>BULKIFY_TESTS__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>Define if tests should run with large data sets or not. Default is FALSE as bulk tests should be run before releases to production.</description>
+    <externalId>false</externalId>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+    <inlineHelpText>Define if tests should run with large data sets or not. Default is FALSE as bulk tests should be run before releases to production.</inlineHelpText>
+    <label>BULKIFY_TESTS</label>
+    <type>Checkbox</type>
+</CustomField>

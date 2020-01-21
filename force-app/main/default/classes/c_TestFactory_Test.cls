@@ -4,7 +4,7 @@
  * @Author             : Matthew Evans
  * @Group              : 
  * @Last Modified By   : Matthew Evans
- * @Last Modified On   : 12/18/2019, 10:40:16 AM
+ * @Last Modified On   : 12/18/2019, 2:20:44 PM
  * @Modification Log   : 
  * Ver       Date            Author      		    Modification
  * 1.0    12/17/2019   Matthew Evans     Initial Version
@@ -80,8 +80,7 @@ public class c_TestFactory_Test {
 
     @isTest
     static void sortAndLinkSObjects() {
-        
-        Account a = new Account(Name = 'Stuart', Id='00100000000014C');
+        Account a = new Account(Name = 'Stuart', Id='00100000000014C'); // The ID needs to be any ID of a valid format for Account. No DML is applied, so the record does not need to exist.
         Contact c = new Contact(LastName = 'Evans', Account = a); // objects may be associated in this way before they have an id in practice
         
         sObject[] objs = new List<Sobject>{a,c};
