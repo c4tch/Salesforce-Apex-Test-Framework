@@ -1,6 +1,6 @@
 # A Salesforce Apex Unit Test Framework for Agile Teams
 ## Notices
-### (21-01-2020) Migrtation from Metadata format to Source format iminent
+### (21-01-2020) Migration from Metadata format to Source format iminent
 Inline with the DX roadmap all c4tch repos will be moved to source format. A branch will be kept with the 'old' code for prosterity, however a new master will be used. You can expect the change to ocurr within the next few days. 
 
 ### (16-12-2019) Unit tests for framework to be included
