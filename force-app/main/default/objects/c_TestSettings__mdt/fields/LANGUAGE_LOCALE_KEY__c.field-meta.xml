@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>LANGUAGE_LOCALE_KEY__c</fullName>
+    <defaultValue>&quot;en_US&quot;</defaultValue>
+    <description>Locale key for language in test context</description>
+    <externalId>false</externalId>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+    <inlineHelpText>Locale key for language in test context</inlineHelpText>
+    <label>LANGUAGE_LOCALE_KEY</label>
+    <length>7</length>
+    <required>true</required>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

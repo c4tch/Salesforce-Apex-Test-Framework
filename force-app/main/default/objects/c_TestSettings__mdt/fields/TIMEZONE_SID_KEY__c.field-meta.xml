@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>TIMEZONE_SID_KEY__c</fullName>
+    <defaultValue>&quot;Europe/Helsinki&quot;</defaultValue>
+    <description>The SID key of the timezone to be used in test context, ex. Europe/Helsinki</description>
+    <externalId>false</externalId>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+    <inlineHelpText>The SID key of the timezone to be used in test context, ex. Europe/Helsinki</inlineHelpText>
+    <label>TIMEZONE_SID_KEY</label>
+    <length>50</length>
+    <required>false</required>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>
