@@ -254,9 +254,9 @@ Updating a template can cause other tests to fail - this is a GOOD thing, as it 
 ### Classes
 Three main classes, the main factory class which you will edit, an two you won't need to touch: an automation class (the one that creates and inserts data to the database) and an abstract Maker which is the base for creating your own objects so that the factory has a predictable set of methods and accessors.
 
-- c_TestFactory (EDITABLE) - your **test class** can "extend" this, allowing your tests to access the factory without writing c_TestFactory zillions of times.
-- c_TestFactoryMaker - your **templates** will "extend" this, which makes sure you have the methods that the factory can recognise.
-- c_TestFactoryAutomation - the "engine" of the framework - no need to touch this.
+- **c_TestFactory** (***EDITABLE***) - provides a map (updated by your) to your templates and provides context for your test data. Your **test class should "extend" this**, allowing your tests to access the factory without writing c_TestFactory zillions of times.
+- **c_TestFactoryMaker** - your **templates "extend" this**, it's an interface - making sure you have the methods that the factory can recognise.
+- **c_TestFactoryAutomation** - the "engine" of the framework - no need to touch this. This does all the magic.
 
 Some example classes have been provided to demonstrate how to build different kinds of business objects, or Entities, for use in Tests. These can be rewritten / replaced as needed:
 - c_TestFactory_Users (like business users)
