@@ -1,7 +1,7 @@
 # A Salesforce Apex Unit Test Framework for Agile Teams
 
 ## About
-This project provides a framework to scaffold templates of data for reuse in Apex unit tests on the Salesforce lightning platform, making it easier for developers to write test cases that work with reliable data, improving developer flow and stability of releases.
+This project provides a framework to scaffold templates of data for reuse in Apex unit tests on the Salesforce lightning platform, making it easier for developers to write test cases that work with reliable data, improving developer flow and stability of releases. This framework is at version 1, having been used on several projects, however feedback is welcome to improve.
 
 <a href="https://githubsfdeploy.herokuapp.com?owner=Matthew Evans&repo=https://github.com/c4tch/SFDCTestFramework&ref=master">
   <img alt="Deploy to Salesforce"
