@@ -315,9 +315,11 @@ public class c_TestFactory_SalesCloud {
 ```
 
 ## c_TestFactory 
-Does three jobs:
-1. Keep a register and map of the Entities to classes that generate the data
+Does two jobs:
+1. Keep a register and a map of the tempaltes (known as "Entities") to the classes that generate the data
 2. Manage Test Context
+
+It  acts as the "central pillar" of the solution, extending the automation classes etc., allowing us to edit this entity mapping without changing any of the code that actually executes the factory.
 
 ### c_TestFactory / Mapping 'Entity' template labels to classes
 The factory keeps a list of Entities (your templates get a nice friendly name so that we can differenciate between the differnt kinds of Account or Opportunity you might build). These are mapped to the methods that generate the data.
