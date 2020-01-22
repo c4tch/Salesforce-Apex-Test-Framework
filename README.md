@@ -43,10 +43,12 @@ We are going to create data for a basic test featuring an Account with a child O
 
 Assuming we have created our two templates already, in our Unit Test we do the following:
 
-1) Extend the Unit Test class to use the factory
-2) Inside your unit test, set the context of the test data
-3) Create the data you want in memory. 
-4) Run the framework to commit the records to the database. Now start your test...
+1) Extend the Unit Test class to use the factory.
+2) Inside your unit test, set the context of the test data, so that your data templates can set the right country, currency or other values it might need.
+3) Create the data you want using the framework. This will exist in memorty to start with.
+4) Run the framework to commit the records to the database.
+
+Now start your test...
 
 The final code might look like this:
 ```Apex
@@ -59,7 +61,9 @@ The final code might look like this:
             run();
             
             Test.startTest();
-            // do my tests here
+            // Test my functionality here. We check the Opty was created correctly, and the Account country (for some mysterious reason my business wants) is set to Swedish
+            System.Assert(o.AccountId!=null,'Account was not set on Opportunity');
+            System.Assert(o.Account.Country='SE','Account country was not set to Sweden by "some" custom trigger');
             Test.stopTest();
         }
     }
