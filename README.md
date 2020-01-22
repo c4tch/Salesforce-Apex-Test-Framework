@@ -9,13 +9,13 @@ This project provides a framework to scaffold templates of data for reuse in Ape
 </a>
 
 Features:
-(1) Rapidly create reusable Templates for data for each business scenario. (A Case for your B2C business will not be likely to be the same as your B2B business or Back office support for example.)
-(2) Represent data as simple records, or complex dependent (parent / child) data^.
-(3) Define common settings such as Country or Currency using a test wide set of Context variables that will be used by the templates.
-(4) Use flags to choose if you want to run tests with bulk data, or with a small number of records (faster, and more useful for Continuous Integration testing or final releases).
-(5) Templates can be extended / overridden and inherrited, allowing efficient code reuse.
-(6) Framework intelligently gathers DML cycles together, massively reducing DML when generatring test data. This speeds up your tests and reduces the use of governor limits.
-(7) Speeds up unit test writing. Once a template has been created it can be re-used accross your application.
+1) Rapidly create reusable Templates for data for each business scenario. (A Case for your B2C business will not be likely to be the same as your B2B business or Back office support for example.)
+2) Represent data as simple records, or complex dependent (parent / child) data^.
+3) Define common settings such as Country or Currency using a test wide set of Context variables that will be used by the templates.
+4) Use flags to choose if you want to run tests with bulk data, or with a small number of records (faster, and more useful for Continuous Integration testing or final releases).
+5) Templates can be extended / overridden and inherrited, allowing efficient code reuse.
+6) Framework intelligently gathers DML cycles together, massively reducing DML when generatring test data. This speeds up your tests and reduces the use of governor limits.
+7) Speeds up unit test writing. Once a template has been created it can be re-used accross your application.
 
 *^Simple examples could be different types of User, Accout, Contact, or Opportunity. Complex examples may be a composition of dependencies, like a Customer (An account, with multiple contacts, opportunities, cases etc. The framework allows you to stitch together relationships in memory, even before the records have not been committed to the database.*
 
