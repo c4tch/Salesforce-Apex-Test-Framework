@@ -17,7 +17,7 @@ Features:
 6) Framework intelligently gathers DML cycles together, massively reducing DML when generatring test data. This speeds up your tests and reduces the use of governor limits.
 7) Speeds up unit test writing. Once a template has been created it can be re-used accross your application.
 
-*^Simple examples could be different types of User, Accout, Contact, or Opportunity. Complex examples may be a composition of dependencies, like a Customer (An account, with multiple contacts, opportunities, cases etc. The framework allows you to stitch together relationships in memory, even before the records have not been committed to the database.*
+*^Simple examples could be different types of User, Accout, Contact, or Opportunity. Complex examples may be a composition of dependencies, like a Customer (An account, with multiple contacts, opportunities, cases etc.). The framework allows you to stitch together relationships in memory, even before the records have not been committed to the database.*
 
 ### Important notices
 #### Source Format
@@ -412,18 +412,14 @@ public class exampleTest extends c_TestFactory {
 
 
 ## Q&A
-### Ideas for improvement
-- Error handling and reporting of failures to enable trend analysis of common development / SIT problems
-- Include the new EventBus delivery methods as well as DML. Now that would be cool.
-
-### Is it really a framework?
+#### Is it really a framework?
 Technically not, though it does have interfaces that mandate certain footprints and coding styles, it is more of a 'pattern'; however this repo can be used directly as base code and extended easily, so the answer is also 'Yes'. Other examples of frameworks in apex include Kevin O'Hara's excellent Light Weight Trigger Framework.
 
-### I want to improve it and have decided to refactor the lot
-Cool, if it's a major refactor make a pull request... My only ask is to to try keep this simple, having boiled it down from some earlier heavy structures already.
+#### I want to improve it and have decided to refactor the lot
+Make a pull request, or if you dont have time, register an Issue. If it's a major refactor make a pull request... My only ask is to always try keep things as lean as possible, having boiled it down from some earlier heavy structures already.
 
-### How can I quickly validate my Maker Classes when I write them
-Use some anonymous apex. Here's an example I wrote after creating the AdminUser maker class to test it out (note there may be limits in your org on the number of Administrator licences, so watch for the org complaining when you execute this dml).
+#### How can I quickly validate my Maker Classes when I write them
+Use some anonymous apex. Here's an example I wrote (pseudo code, but it should compile) after creating the AdminUser maker class to test it out (note there may be limits in your org on the number of Administrator licences, so watch for the org complaining when you execute this dml).
 
 Note that as this is anon apex, there is no class to extend using c_TestFactory, so you'll see that written everywhere...
 ```Apex
@@ -447,8 +443,8 @@ Database.rollback(s);
 ```
 
 ## Notices
-### (21-01-2020) Migration from Metadata format to Source format COMPLETE
+#### (21-01-2020) Migration from Metadata format to Source format COMPLETE
 Inline with the DX roadmap all c4tch repos will be moved to source format, including this one. A branch will be kept with the 'old' code for prosterity, however a new master will be used. You can expect the change to ocurr within the next few days. 
 
-### (16-12-2019) Unit tests for framework to be included COMPLETE
+#### (16-12-2019) Unit tests for framework to be included COMPLETE
 One project implementing this solution was reporting the need for the test framework itself to include unit tests. As the framework is extended by you and used in your own tests this was originally considered to be a 'nice to have', however as the request was clear that it was necessary for alpha deploys and initial set up it made sense. This has been completed and will be added to the repo Jan 2020.
