@@ -44,31 +44,9 @@ We are going to create data for a basic test featuring an Account with a child O
 Assuming we have created our two templates already, in our Unit Test we do the following:
 
 1) Extend the Unit Test class to use the factory
-```Apex
-@isTest
-public class myProject_SampleUnitTest extends c_TestFactory {
-    @isTest
-    private static void myUnitTest() {
-        // My test will go here
-    }
-}
-```
-
 2) Inside your unit test, set the context of the test data
-```c_TestFactory.setDefaultContext();```
-*This fetches the context from the Customer metadata type "Test Settings". You can also override them in Apex directly by referencing the static variables c_TestFactory.COUNTRY_CODE etc.*
-
 3) Create the data you want in memory. 
-```Apex
-Account a = (Account) make(Entity.SALES_ACCOUNT, new Account(name = 'Top Level Account '));
-Opportunity o = (Opportunity)  make(Entity.SALES_OPPORTUNITY, new Opportunity(name = 'My opty', Account = a));
-```
-*See how we can Parent the Opportunity before anything has be committed to memory? Neat! The factory registers the templated data and their relationships as you call them into memory.*
-
-4) Now, execute the DML in one go and you can start your test
-```Apex
-run();
-```
+4) Run the framework to commit the records to the database. Now start your test...
 
 The final code might look like this:
 ```Apex
@@ -97,6 +75,8 @@ Next we create data in memory using "make". This has two signatures, one to get 
 - make(Entity.MY_OBJECT, new sObject(someField='my override'); - optional, allows pass in of an sObject to override default values, can set any valid field this way, including relationship and allows passing of other sObjects in memory)
 
 The c_TestFactory class keeps a list of template names and maps each one to a method that generates the default data. When the "make" method is called, the factory looks up the correct class and passes on any data you want to seed the sObject(s) with such as Name or any relationship fields, like we do with the child Opportunity.
+
+*See how we can Parent the Opportunity's Account fields before anything has be committed to the database? We have no idea what ID the Account will get but we can still create this relationship - neat huh? When inerting to the database, the factory scans each record for relationship fields, and if they are found the ID's are populated as the records are inserted.*
 
 Then everything is inserted from memory to the database: "Run"
 - Run() - inserts everything in memory and flushes the buffer
