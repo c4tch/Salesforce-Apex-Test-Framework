@@ -37,9 +37,16 @@ ex.
 Account a = (Account) make(new X_MyApp.SalesAccount(), new Account(name='My App Account'));
 run();
 
-**Simple!
+#### Simple!
 
+#### Other News
 I also uncovered a bug in the default settings where if one value was NULL, the default settings would always be fetched, overwriting any values you may have set elsewhere in the code.
+
+One side effect of this new model, is that in a rare case if developers used tw packages to get object templates, they could find that the same Method name for an object is being used twice causing unpredictable behaviour as the code only uses the top level class name to identify an object. There is currently no code to highlight the conflict as it's not possible to identify the parent class in Apex. 
+
+Ex. c_MyClassA.SalesAccount and myClassOther.SalesAccount would be treated as THE SAME object, and therefore only one of them would generate data.
+
+The code would compile, and run, however the developer will see their Test data is not what was expected.
 
 ### (21-01-2020) Migration from Metadata format to Source format iminent
 Inline with the DX roadmap all c4tch repos will be moved to source format. A branch will be kept with the 'old' code for prosterity, however a new master will be used. You can expect the change to ocurr within the next few days. 
