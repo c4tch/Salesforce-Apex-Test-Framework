@@ -14,12 +14,12 @@
   For more complex business objects, where there may be child/parent records or more complex logic, override the make() method. this will allow you to call other templates, and create relations etc. Always pass back and sObject and follow the signature so the Test factory sees no difference between your custom maker and the standard defined here.
  @History
   VERSION     AUTHOR           DATE            DETAIL
-  1.0         Matt Evans       7/12/2018       Initial pattern
+  1.0         Matt Evans       7/12/2018       Initial pattern (was named TestFactoryMaker)
   1.1         Matt Evans       10/9/2019       Optimised maker with minor tweaks for return values
   1.2         Matt Evans       17/9/2019       Removed descibe calls in loops to and sObject references to improve CPU time
   1.2.1       Matt Evans       30/9/2019       Tidy & included profileIdByNamefile and roleIdByName calls in here as they are so commonly needed
   1.2.2       Matt Evans       17/12/2019      Minor updates, no functional changes
-  1.2.3       Matt Evans       8/6/2020        Prototyping a new format removing the need for the ENTITY list, refactored name to "Test Factory Object"
+  2.0         Matt Evans       8/6/2020        Prototyping a new format removing the need for the ENTITY list, refactored name to "Test Factory Object"
 */
 
 public abstract class c_TestFactoryObject extends c_TestFactory {

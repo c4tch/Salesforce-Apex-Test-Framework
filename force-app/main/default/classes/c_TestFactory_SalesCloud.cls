@@ -7,6 +7,7 @@
   VERSION     AUTHOR           DATE            DETAIL
   1.0         Matt Evans       7/12/2018       Draft
   1.1         Matt Evans       9/9/2019        Fixed reflection issues in factory classes, removed fix and simplified the Customer template 
+  2.0         Matt Evans       8/6/2020        New model removed ENTITY references 
 */
 
 public class c_TestFactory_SalesCloud {

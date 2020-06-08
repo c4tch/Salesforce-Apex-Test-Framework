@@ -8,6 +8,7 @@
  * @Modification Log   : 
  * Ver    Date         Author           Modification
  * 1.0    12/17/2019   Matthew Evans    Initial Version
+ *   2.0         Matt Evans       8/6/2020        New model removed ENTITY references 
 **/
 
 public class c_TestFactory_StandardUsers {
