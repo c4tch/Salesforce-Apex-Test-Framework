@@ -15,7 +15,7 @@ public class c_TestFactory_StandardUsers {
     /**
     * Standard User 
     **/
-    public class StandardUser extends c_TestFactoryMaker  {
+    public class StandardUser extends c_TestFactoryObject  {
 
         sObject defaults()
         {
@@ -65,7 +65,7 @@ public class c_TestFactory_StandardUsers {
     /**
     * Administrator - An example of inherriting from another object
     **/
-    public class StandardSystemAdmin extends c_TestFactoryMaker  {
+    public class StandardSystemAdmin extends c_TestFactoryObject  {
 
         sObject defaults() {
             // Default object
@@ -78,7 +78,7 @@ public class c_TestFactory_StandardUsers {
             // Use the admin defaults and merge them with a standard user so we dont have to repeat code
             sObject rec = (sObject) defaults();
             sourceObject = mergeFields(rec, sourceObject);
-            c_Testfactory.make(Entity.STANDARD_USER, sourceObject); // no need to call 'add' next as the make method does this for us
+            c_Testfactory.make(new StandardUser(), sourceObject); // no need to call 'add' next as the make method does this for us
             return sourceObject;
         }
     }
@@ -86,14 +86,14 @@ public class c_TestFactory_StandardUsers {
     /**
     * ReadOnly - An example of inherriting only the defaults from another object
     **/
-    public class ReadOnly extends c_TestFactoryMaker  {
+    public class ReadOnly extends c_TestFactoryObject  {
 
         sObject defaults() {
             // Use another objects default values using c_Testfactory.getDefauts(); 
             // Do this when you only want to clone the default values from another object
             // but you DON'T want to inherrit any custom "make" logic like in the Standard System Admin example above.
             // In this case we will just choose a diffent profile and stick with the standard "make" - implementing no custom logic.
-            User rec = (User)c_Testfactory.getDefaults(Entity.STANDARD_USER);
+            User rec = (User)(new StandardUser()).getDefaults();
             rec.ProfileId = profileIdByName('Read Only');
             return (sObject) rec;
         }

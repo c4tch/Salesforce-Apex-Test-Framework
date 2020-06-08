@@ -15,7 +15,7 @@ public class c_TestFactory_SalesCloud {
     **/
 
     /*** Sales Account ***/
-    public class SalesAccount extends c_TestFactoryMaker {
+    public class SalesAccount extends c_TestFactoryObject {
 
         // Mandatory minimum default set up, returns an sObject, in this case a default Account for the Sales Cloud
         sObject defaults() {
@@ -36,7 +36,7 @@ public class c_TestFactory_SalesCloud {
     }
 
     /*** Sales Contact ***/
-    public class SalesContact extends c_TestFactoryMaker {
+    public class SalesContact extends c_TestFactoryObject {
 
         // Mandatory minimum default set up, returns an sObject, in this case a default Contact for the Sales Cloud
         sObject defaults() {
@@ -52,7 +52,7 @@ public class c_TestFactory_SalesCloud {
     }
     
     /*** Sales Opty ***/
-    public class SalesOpportunity extends c_TestFactoryMaker {
+    public class SalesOpportunity extends c_TestFactoryObject {
 
         // Mandatory minimum default set up, returns an sObject, in this case a default OPPORTUNITY for the Sales Cloud
         sObject defaults() {
@@ -70,7 +70,7 @@ public class c_TestFactory_SalesCloud {
     /**
     * Business Objects: Complete Customer... etc.
     **/
-    public class Customer extends c_TestFactoryMaker {
+    public class Customer extends c_TestFactoryObject {
 
         // Mandatory minimum default set up, return null for complex objects
         sObject defaults() {
@@ -80,7 +80,7 @@ public class c_TestFactory_SalesCloud {
         // Custom override for the maker
         public override sObject make(sObject sourceObject) {
             // Create an account
-            Account customerAccount = (Account) c_Testfactory.make(Entity.SALES_ACCOUNT, (Account)sourceObject);
+            Account customerAccount = (Account) c_Testfactory.make(new c_TestFactory_SalesCloud.SalesAccount(), (Account)sourceObject);
 
             // We want some unique name for the child component emails etc. so strip the account name
             String cleanNameForRelatedRecords = customerAccount.name.replaceAll('[^a-zA-Z0-9]','');
@@ -91,14 +91,14 @@ public class c_TestFactory_SalesCloud {
             {
                 String contactFirstName = customerAccount.name;
                 String contactUniqueEmail = cleanNameForRelatedRecords+'_'+i+'@donotsend.example.com';
-                c_Testfactory.make(Entity.SALES_CONTACT, new Contact(Account = customerAccount, FirstName = contactFirstName, LastName = 'Contact '+i, Email = contactUniqueEmail));
+                c_Testfactory.make(new c_TestFactory_SalesCloud.SalesContact(), new Contact(Account = customerAccount, FirstName = contactFirstName, LastName = 'Contact '+i, Email = contactUniqueEmail));
             }
 
             // Create opportunties for the account and add them to the factory
             Integer opptysToCreate = 2;
             for (Integer i = 0; i<opptysToCreate; i++)
             {
-                c_Testfactory.make(Entity.SALES_OPPORTUNITY, new Opportunity(Account = customerAccount, Name = customerAccount.name +' Test Oppty '+i));
+                c_Testfactory.make(new c_TestFactory_SalesCloud.SalesOpportunity(), new Opportunity(Account = customerAccount, Name = customerAccount.name +' Test Oppty '+i));
             }
 
             // Return the passed Account object as a root reference
