@@ -1,5 +1,46 @@
 # A Salesforce Apex Unit Test Framework for Agile Teams
 ## Notices
+### (08-06-2020) Major refactor :) I'm eliminating the Entity list
+As Salesforce moves to a Package based delivery model, this framework needs to be extendable from packages that might use it as an external dependency. For those packages to be able to create their own Objects without editing this package, they need to be able to extend and create their own, so the ENTITY list used before can no longer be used.
+
+Instead we do some basic reflection, and use class names instead of Entity names. It's very neat and actually reduces code complexity:
+
+#### What it USED TO be:
+1) Create your Object, inheriting from c_TestFactoryMaker
+2) Update Test Framework Entity and a pointer to the method like this:
+
+c_TestFramework {
+    ...
+        Entity {
+            ...
+            NEW_ENTITY_NAME
+            ...
+        }
+    ...
+}
+
+3) Commit your changes to the  org, test the link is correct
+
+4) Use in your tests like this:
+
+Account a = (Account) make(c_TestFramework.NEW_ENTITY_NAME, new Account(name='My App Account'));
+run();
+
+#### Process is now
+1) Create your object, inheriting from c_TestFactoryObject. (Note the nice name change. Note also Building objects is the same, so your templates dont need to change, except for eliminating any ENITY references as below).
+2) Use in your tests like this:
+
+sObject a = (sObject) make(new myAppObject() [, new sObject(my overrides)]);
+run();
+
+ex. 
+Account a = (Account) make(new X_MyApp.SalesAccount(), new Account(name='My App Account'));
+run();
+
+**Simple!
+
+I also uncovered a bug in the default settings where if one value was NULL, the default settings would always be fetched, overwriting any values you may have set elsewhere in the code.
+
 ### (21-01-2020) Migration from Metadata format to Source format iminent
 Inline with the DX roadmap all c4tch repos will be moved to source format. A branch will be kept with the 'old' code for prosterity, however a new master will be used. You can expect the change to ocurr within the next few days. 
 
