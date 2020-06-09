@@ -26,11 +26,13 @@ public virtual class c_TestFactory {
     /**
      * Test Context
      * ------------
+     * Pseudo Constants (therefore UPPERCASE)
      * Set from Custom Metadata c_TestSettings__Mtd. 
      * Public so they may be overridden in code. 
      * Provides common context for the objects, such as Country, 
      * and a switch Bulkify Tests to define how much data to produce.
     **/
+    static c_TestSettings__mdt defaultContext;
     public static Boolean BULKIFY_TESTS {
         get {
             if (BULKIFY_TESTS==null) {
@@ -113,11 +115,9 @@ public virtual class c_TestFactory {
     }
     public static Datetime NOW = System.now();
 
-    static c_TestSettings__mdt defaultContext;
     public static void setDefaultContext()
     {
-        if (defaultContext==null)
-        {
+        if (defaultContext==null) {
             c_TestSettings__mdt [] activeSettings = [SELECT MasterLabel, 
                                    QualifiedApiName, Created__c, Active__c,
                                    BULKIFY_TESTS__c,
@@ -128,8 +128,7 @@ public virtual class c_TestFactory {
                                    where Active__c = TRUE
                                    Order By Created__c DESC limit 1];
     
-            if (!activeSettings.IsEmpty())
-            {
+            if (!activeSettings.IsEmpty()) {
                 defaultContext = activeSettings[0];
             }
         }
@@ -219,12 +218,18 @@ public virtual class c_TestFactory {
         sortAndLinkSObjects(objs, createOrder, collections_INSERT, collections_UPDATE);
 
         for (String name : createOrder) {
-            if (collections_UPDATE.containsKey(name) && collections_UPDATE.get(name).size()>0) update (collections_UPDATE.get(name));
-            if (collections_INSERT.containsKey(name) && collections_INSERT.get(name).size()>0) insert (collections_INSERT.get(name));
+            if (collections_UPDATE.containsKey(name) && collections_UPDATE.get(name).size()>0) {
+                update (collections_UPDATE.get(name));
+            }
+            if (collections_INSERT.containsKey(name) && collections_INSERT.get(name).size()>0) {
+                insert (collections_INSERT.get(name));
+            }
         }
 
         // Clear the list of sObject records on the Business Object
-        if (clearObjects) objectsByType.get(businessObjectToCreate).clear();
+        if (clearObjects) {
+            objectsByType.get(businessObjectToCreate).clear();
+        }
 
         System.debug(LoggingLevel.INFO,'@@ END: Test Factory Create Type '+ businessObjectToCreate +' @@');
     }
