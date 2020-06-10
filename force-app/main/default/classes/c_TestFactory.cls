@@ -242,13 +242,14 @@ public virtual class c_TestFactory {
     **/
 
     // Map relational fields 
-    // Mapping once all fields on an object limits the need to loop large lists of fields repeately per transaction
+    // - Map example for Asset with several relationship fields of the same type: Asset => [Account1__c => Account1__r, Account2__c => Account2__r etc.]
     static Map<String, Map<String, String>> objectRelationalFieldMap = new Map<String, Map<String, String>>();
     static Map<String, String> setRelationalFieldMap(sObject o) {
         String objectName = String.valueOf(o.getSObjectType());
 
-        // If we've already built the map, return values instead of looping the field set again
+        // Check we need to build the map for this object
         if (!objectRelationalFieldMap.containsKey(objectName)) {
+            
             // Get the field name and the relational field name ex. field with name "AccountId" on Contact has relationalfield name "Account"
             Map<String, String> fieldNameToRelationshipName = new Map<String,String>();
             DescribeSObjectResult res = o.getSObjectType().getDescribe();
@@ -265,8 +266,8 @@ public virtual class c_TestFactory {
                 }
             }
             
-            // store only necessary fields in the map
-            objectRelationalFieldMap.put(objectName, fieldNameToRelationshipName);
+            // Store only necessary fields in the map
+            objectRelationalFieldMap.put(objectName, fieldNameToRelationshipName); 
         }
         return objectRelationalFieldMap.get(objectName);
     }

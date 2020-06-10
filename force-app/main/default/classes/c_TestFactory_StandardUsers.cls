@@ -1,6 +1,6 @@
 /**
  * @File Name          : c_TestFactory_StandardUsers.cls
- * @Description        : Provides standard users to extend or inherrit from
+ * @Description        : Provides standard users to extend or inherit from
  * @Author             : Matthew Evans
  * @Group              : 
  * @Last Modified By   : Matthew Evans
@@ -12,6 +12,54 @@
 **/
 
 public class c_TestFactory_StandardUsers {
+    /**
+     * Get Permission Set for Test Users
+     * Allows Custom Permissions to be applied, to manage things like execution of triggers etc. 
+     * /
+    public static id dataCreationPermissionSetId {
+        get {
+            dataCreationPermissionSetId = (dataCreationPermissionSetId==null ? getDataCreationPermissionSetId() : dataCreationPermissionSetId); 
+            return dataCreationPermissionSetId;
+        } 
+        set{}
+    }
+    static id getDataCreationPermissionSetId() {
+        id permSetId = [select id from PermissionSet where name = 'c_TestFactory_DataCreation' limit 1][0].id;
+        return permSetId;
+    }
+
+    /**
+     * Test User
+     * /
+    public class TestUserPermissionSetAssignment extends c_TestFactoryObject {
+        sObject defaults() {
+            PermissionSetAssignment psa = new PermissionSetAssignment();
+            psa.PermissionSetId = dataCreationPermissionSetId;
+            return (sObject) psa;
+        }
+    }*/
+    public class UnitTestSetUpUser extends c_TestFactoryObject {
+        
+        sObject defaults() {
+            // Default object
+            User rec = new User();
+            rec.Alias = 'TestUser';
+            rec.ProfileId = profileIdByName('Test Factory Data Creator');
+            return (sObject) rec;
+        }
+        public override sObject make(sObject sourceObject) {
+            // Merge with a standard user so we dont have to repeat code
+            sObject rec = (sObject) defaults();
+            sourceObject = mergeFields(rec, sourceObject);
+            
+            // Create the user using the Standard User template
+            User u = (User) c_Testfactory.make(new StandardUser(), sourceObject); // no need to call 'add' next as the make method does this for us
+            
+            // Assign permission set
+            //c_TestFactory.make(new TestUserPermissionSetAssignment(), new PermissionSetAssignment(Assignee = u));
+            return sourceObject;
+        }
+    }
 
     /**
     * Standard User 
@@ -25,12 +73,12 @@ public class c_TestFactory_StandardUsers {
             String orgId = UserInfo.getOrganizationId();
             
             // Default values
-            rec.Alias = 'SysAdmin';
+            rec.Alias = 'StdUsr';
             rec.UserName = rec.Alias + '@'+ orgId+'.anytest.com';
             rec.ProfileId = profileIdByName('Standard User');
 
             rec.Email = rec.Alias + '@any.test.com';
-            rec.FirstName = 'Admin';
+            rec.FirstName = 'Standard';
             rec.LastName = 'User';
 
             rec.EmailEncodingKey = EMAIL_ENCODING_KEY; // Context values taken from the Factory
