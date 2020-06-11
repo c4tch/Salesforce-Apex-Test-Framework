@@ -1,4 +1,3 @@
-
 System.Savepoint s = Database.setSavepoint();
 
 c_TestFactory.setDefaultContext();
