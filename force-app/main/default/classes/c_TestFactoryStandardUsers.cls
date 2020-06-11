@@ -1,21 +1,22 @@
 /**
- * @File Name          : c_TestFactory_StandardUsers.cls
- * @Description        : Provides standard users to extend or inherrit from
+ * @File Name          : c_TestFactoryStandardUserss.cls
+ * @Description        : Provides standard Salesforce users to extend or inherit from, including a base Test User 'UnitTestSetUpUser' for data creation 
  * @Author             : Matthew Evans
  * @Group              : 
  * @Last Modified By   : Matthew Evans
- * @Last Modified On   : 12/17/2019, 12:13:35 PM
+ * @Last Modified On   : 11/6/2020
  * @Modification Log   : 
- * Ver    Date         Author           Modification
- * 1.0    12/17/2019   Matthew Evans    Initial Version
+ * Ver  Date          Author           Modification
+ * 1.0  12/17/2019  Matthew Evans   Initial Version
+ * 2.0  8/6/2020    Matthew Evans   New model removed ENTITY references , and new Test User 
 **/
 
-public class c_TestFactory_StandardUsers {
+public class c_TestFactoryStandardUsers {
 
     /**
     * Standard User 
     **/
-    public class StandardUser extends c_TestFactoryMaker  {
+    public class StandardUser extends c_TestFactoryObject  {
 
         sObject defaults()
         {
@@ -24,12 +25,12 @@ public class c_TestFactory_StandardUsers {
             String orgId = UserInfo.getOrganizationId();
             
             // Default values
-            rec.Alias = 'SysAdmin';
+            rec.Alias = 'StdUsr';
             rec.UserName = rec.Alias + '@'+ orgId+'.anytest.com';
             rec.ProfileId = profileIdByName('Standard User');
 
             rec.Email = rec.Alias + '@any.test.com';
-            rec.FirstName = 'Admin';
+            rec.FirstName = 'Standard';
             rec.LastName = 'User';
 
             rec.EmailEncodingKey = EMAIL_ENCODING_KEY; // Context values taken from the Factory
@@ -65,7 +66,7 @@ public class c_TestFactory_StandardUsers {
     /**
     * Administrator - An example of inherriting from another object
     **/
-    public class StandardSystemAdmin extends c_TestFactoryMaker  {
+    public class StandardSystemAdmin extends c_TestFactoryObject  {
 
         sObject defaults() {
             // Default object
@@ -78,7 +79,7 @@ public class c_TestFactory_StandardUsers {
             // Use the admin defaults and merge them with a standard user so we dont have to repeat code
             sObject rec = (sObject) defaults();
             sourceObject = mergeFields(rec, sourceObject);
-            c_Testfactory.make(Entity.STANDARD_USER, sourceObject); // no need to call 'add' next as the make method does this for us
+            c_Testfactory.make(new StandardUser(), sourceObject); // no need to call 'add' next as the make method does this for us
             return sourceObject;
         }
     }
@@ -86,16 +87,50 @@ public class c_TestFactory_StandardUsers {
     /**
     * ReadOnly - An example of inherriting only the defaults from another object
     **/
-    public class ReadOnly extends c_TestFactoryMaker  {
+    public class ReadOnly extends c_TestFactoryObject  {
 
         sObject defaults() {
             // Use another objects default values using c_Testfactory.getDefauts(); 
             // Do this when you only want to clone the default values from another object
             // but you DON'T want to inherrit any custom "make" logic like in the Standard System Admin example above.
             // In this case we will just choose a diffent profile and stick with the standard "make" - implementing no custom logic.
-            User rec = (User)c_Testfactory.getDefaults(Entity.STANDARD_USER);
+            User rec = (User)(new StandardUser()).getDefaults();
             rec.ProfileId = profileIdByName('Read Only');
             return (sObject) rec;
+        }
+    }
+
+
+    /**
+    * Unit Test Set Up User - for use in @TestSetUp data creation
+    * 
+        This is a nice work around to allow tests to prevent automation (process builders, triggers and flows) from
+        firing when creating large amounts of data. 
+        The Test Factory has a profile 'Test Factory Data Creator'.
+        Attach a permission set to this and apply Custom Permissions in configurtation.
+        Then, in your automation (ex. in Process Builder check for $Permission) you can test for the 
+        custom permission in the automation you dont want to run when inserting yourt set up data.
+        This work around signifficantly reduces DML and makes it much easier to intert large volumes of data
+        and also speeds up tests signifficantly. 
+    **/
+    public class UnitTestSetUpUser extends c_TestFactoryObject {
+        
+        sObject defaults() {
+            // Default object
+            User rec = new User();
+            rec.Alias = 'TestUser';
+            rec.ProfileId = profileIdByName('Test Factory Data Creator');
+            return (sObject) rec;
+        }
+        public override sObject make(sObject sourceObject) {
+            // Merge with a standard user so we dont have to repeat code
+            sObject rec = (sObject) defaults();
+            sourceObject = mergeFields(rec, sourceObject);
+            
+            // Create the user using the Standard User template
+            User u = (User) c_Testfactory.make(new StandardUser(), sourceObject); // no need to call 'add' next as the make method does this for us
+            
+            return sourceObject;
         }
     }
     //*/
