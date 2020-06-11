@@ -1,9 +1,9 @@
-# A Salesforce Apex Unit Test Framework for Agile Teams
+# A Salesforce Apex Unit Test Framework for Agile Teams (UPDATED AND REFACTORED!)
 ## Notices
-### (08-06-2020) Major refactor :) I'm eliminating the Entity list
-As Salesforce moves to a Package based delivery model, this framework needs to be extendable from packages that might use it as an external dependency. For those packages to be able to create their own Objects without editing this package, they need to be able to extend and create their own, so the ENTITY list used before can no longer be used.
+### (08-06-2020) Major refactor :) 
+As Salesforce moves to a Package based delivery model, this framework needs to be extendable from packages that might use it as an external dependency. In order to make this change, the framework has been re-designed so that this can be packaged, and other packages can use it without having to edit the TestFactory class to update the Entity list.
 
-Instead we do some basic reflection, and use class names instead of Entity names. It's very neat and actually reduces code complexity:
+Instead we do some basic reflection, and use class names instead of Entity names. It's very neat and actually reduces code complexity.
 
 #### What it USED TO be:
 1) Create your Object, inheriting from c_TestFactoryMaker
@@ -39,21 +39,6 @@ run();
 
 #### Simple!
 
-#### Other News
-I also uncovered a bug in the default settings where if one value was NULL, the default settings would always be fetched, overwriting any values you may have set elsewhere in the code.
-
-One side effect of this new model, is that in a rare case if developers used tw packages to get object templates, they could find that the same Method name for an object is being used twice causing unpredictable behaviour as the code only uses the top level class name to identify an object. There is currently no code to highlight the conflict as it's not possible to identify the parent class in Apex. 
-
-Ex. c_MyClassA.SalesAccount and myClassOther.SalesAccount would be treated as THE SAME object, and therefore only one of them would generate data.
-
-The code would compile, and run, however the developer will see their Test data is not what was expected.
-
-### (21-01-2020) Migration from Metadata format to Source format iminent
-Inline with the DX roadmap all c4tch repos will be moved to source format. A branch will be kept with the 'old' code for prosterity, however a new master will be used. You can expect the change to ocurr within the next few days. 
-
-### (16-12-2019) Unit tests for framework to be included
-One project implementing this solution was reporting the need for the test framework itself to include unit tests. As the framework is extended by you and used in your own tests this was originally considered to be a 'nice to have', however as the request was clear that it was necessary for alpha deploys and initial set up it made sense. This has been completed and will be added to the repo Jan 2020.
-
 ### Important notice for performance
 Since API v 43, Salesforce has been seeing CPU issues with describe calls. In order to work around this, optimisations have been made to this code (you can see these in the CPU Improvement branch recently merged). Describe calls are still used however, and it is recommended that the critical update in Spring '20, "Use Improved Schema Caching" is enabled in your org.
 
@@ -76,7 +61,7 @@ Using the framework allows developers to:
 (1) When a change is made, it's good that tests fail! And it's even better that there is one place to fix the code.
 (2) It's important to test code at bulk, but once it's been tested it also slows down the org and deployment. Instead, developers can use a flag to switch from generating massive amounts of bulk data to a small number of records.
 
-## Why use a test framework?
+## Why use a framework?
 One major problem in Enterprise scale Salesforce projects is they are often riddled with bugs caused by Apex being written without clear test cases (ie. no Test Driven Development). Partly due to debugging in Apex being a very poor experience, but also due to the complex setup of data and hoops developers have to jump through just to get to the state they are testing for. In the end, developers often ship code that only has test coverage (the minimum 75%) that doesn't really test the intended outcome. 
 
 Generating data for testing a data driven platform is a massive pain, especially in an agile project environment where the data surfaces of sObjects, security, profiles and users rapidly change. One change can cause spaghetti, so as developers try to keep things simple, which results in problems later down the line when they find out their code doesn't merge or work in real life situations. Data in tests is vital.
@@ -84,58 +69,30 @@ Generating data for testing a data driven platform is a massive pain, especially
 Basic approaches used by project developers include providing a set of methods that generate common data structures such as users, or Accounts - which works fine for simple environments. As projects grow, and dependencies and DML limits become an issue, developers need a consistent way to work together to save time and generate predictable data to work with to be sure they have achieved the aim of the story or requirement - test driven development, especially, demands this.
 
 ## In Use
-Using the framework is straightforward. A factory class provides access to a generic "Make" method that allows developers to create business objects on the fly (I use the term business objects instead of sObjects as a business object may be a collection, or have different default values than a generic Account for example). 
-
-The built objects are based on templates provided by a factory "Maker" class, and allows developers to tailor them to the unit test being written. 
-
-Once a developer has "made" their data, the factory will then insert the sObjects in the most efficient way, which helps keep the number of DML cycles down. (Which can be a problem in large, complex orgs).
-
-This avoids creating different data footprints for every project and code initiative, while still allowing for refactoring and customisation.
+Using the framework is straightforward. A developer creates a default template for re-use, and then when writing tests, developers can instantiate the template, with their own overrides and have the factory commit to the database in grouped DML to reduce overhead. There is also a way to avoid firing triggers etc. if you know how to use Custom Permissions to reduce any overhead when creating Set up data.
 
 ## In Use
 The following guides you through the contents of the framework in this project:
 
 ### Classes
-Three main classes, the main factory class, an automation class (the one that creates and inserts data to the database) and an abstract Maker (the base for creating your own objects so that the factory has a predictable set of methods and accessors).
+Two main classes
 
-- c_TestFactory (EDITABLE) - your test class should "extend" this, and you can register your object templates here
-- c_TestFactoryAutomation (DO NOT EDIT) - the main database operations, no need to touch
-- c_TestFactoryMaker (DO NOT EDIT) - your object templates "extend" this
+1) The main factory class c_TestFactory
+2) and an Object class c_TestFactoryObject
 
-Some example classes have been provided to demonstrate how to build different kinds of business objects, or Entities, for use in Tests. These can be rewritten / replaced as needed:
-- c_TestFactory_Users (like business users)
-- c_TestFactory_CoreUsers (like sys admin)
-- c_TestFactory_SalesCloud (accounts, contacts, optys, customers with contacts etc.)
+c_TestFactory is used to generate data for tests
+c_TestFactoryObject is used as the boilerplate for creating object templates
 
-Finally, a sample unit test has been provided
-- myProject_SampleUnitTest
+Some example classes have been provided in the Demo folder, and also the c_TestFactorySatandardUsers class has some nice examples of how to perform inherritance, if thats what you want. (Ie reuse of one template by another).
 
-The next sections will walk through the function of the factory classes and explain how the framework is used.
 
 ## c_TestFactory 
 Does three jobs:
-1. Allow tests to generate data
-2. Manage Test Context
-3. Keep a register of the Entities used to generate test data
+1. Manage Test Context (country, language etc.)
+2. Generate data from templates
+3. Register and insert the generated data to the database
 
-#### 1. Test use the factory to generate data
-This class taps into the maker and automation classes to automate the generation of any data requesed in a test. A test gain access to the factory by EXTENDING from this class:
-
-@isTest
-public class myProject_SampleUnitTest extends c_TestFactory {
-}
-
-The following two methods are available 
-Create data in memory: "Make"
-- make(Entity.MY_OBJECT_NAME) - creates a default sObject of MY_OBJECT_NAME in memory from the MY_OBJECT_NAME template
-- make(Entity.MY_OBJECT, new sObject(someField='my override'); - optional, allows pass in of an sObject to override default values, can set any valid field this way, including relationship and allows passing of other sObjects in memory)
-
-and then insert everything in memory to the database: "Run"
-- Run() - inserts everything in memory and flushes the buffer
-
-For a working example, see the example unit test included in the code package.
-
-#### 2. Test Context
+#### 1. Test Context
 Good tests run in a consistent context, ie predictable values such as language, country, email encoding formats, data volumes. This ensures that you are able to vary the context of the tests being run in a predictable way, both as a developer and a tester.
 
 The test factory uses a custom metadata table “Test Settings” *c_TestSettings__mdt*
@@ -155,49 +112,39 @@ In this table you create a context with the following fields that are looked up 
 
 The test factory will use the most recently created row marked *Active* and store these in static fields (so that you can override them as needed).
 
-#### 3. Keep a register of the Entities used to generate test data
-The class contains an ENUM called Entity, this lists all the busines objects your tests can use to generate data as friendly names, and also represents the order in which the objects will be inserted to the database. (Its also where you append new objects to as you develop them):
+#### 2.Generate data from templates
+Extend the factory in your Test to allow access to it's methods. Thisn is optional as you can also enter "c_TestFactory" everywhere, this just simplifies your code a little:
+
+@IsTest
+public class DemoTest extends c_TestFactory {
+    /***
+     * Demo using the DemoObjects availale
+     */
+
+    @TestSetup
+    static void demoTestSetUp(){
+        ...
+
+Use the "make" method to create an object from a template. You will need to know what object you are creating!
+Note, all objects must have UNIQUE names. myDomain_Objects.Asset will get confused with anotherApp.Asset. 
+
+Create data in memory: "Make"
+- make(new myObject()) - creates a default sObject of myObject from the myObject template
+- make(new myObject(), new sObject(someField='my override'); - the fields you pass in the sObject will get used by the template and override the default values.
+
+and then insert everything in memory to the database: "Run"
+- Run() - inserts everything in memory and flushes the buffer. If you dont need the data in the db, dont run this.
+
+Example. Create a user using the objects built into the provided c_TestFactoryStandardUsers class:
 
 ```Apex
-    public enum Entity {
-        //...The order is IMPORTANT!!! 
-        // It defines the order of the DML. 
-        // If you need one object inserted before another, 
-        // this must be reflected here.
-        ADMIN_USER
-        ,COUNTRY_USER
-        ,SALES_ACCOUNT
-        ,SALES_CONTACT
-        ,SALES_OPPORTUNITY
-        ,CUSTOMER
-        //...Add more here as you go...
-    }
-```
-These are mapped to classes that extend the TestFactoryMaker interface, which are used to generate the test data:
-
-```Apex
-    // This map points to the maker class that will generate each Entity's sObject(s) for me
-
-    public static final Map<Entity, c_TestFactoryMaker> makers = new Map<Entity, c_TestFactoryMaker> {
-            //... just showing the Sales Account one here to keep this readable
-            ,Entity.SALES_ACCOUNT => new c_TestFactory_SalesCloud.SalesAccount() 
-            //...
-    };
-    ...
+User myUser = make(new c_TestFactoryStandardUsers.UnitTestSetupUser(), new User(alias='TestUsr'));
+run();
 ```
 
-## c_TestFactoryAutomation
-1. Allow a test to generate sObjects from these entities
-2. Insert the generated objects, grouping DML and automatically building relationships between sObjects (this is the clever bit)
-
-#### 1. Allow a test to generate sObjects from these entities
-Each of these Entities is mapped to a class to generate the sObject data in c_TestFactory. The purpose of having this index allows the automation to have a single point for developers to "make" sobjects from these Entities in an automated way.
-
-- As Entities are registered here a common "make" method in the factory allows a test to call up any of these. The automation class executes this making process to create an entity in working memory.
-
-#### 2. Insert the generated objects, grouping DML and automatically building relationships between sObjects (this is the clever bit)
-- A generic "run" method is then called that loops through all the "made" objects and inserts them into the database.
-- The "run" is called, the queue of objects is processed, grouped by name, and reflection is used to automatically link up any ID's while they are inserted into the database.
+#### 2. pt 2 How the factory creates the data in the db (this is the clever bit)
+- A generic "run" method loops through all the "made" objects and inserts them into the database.
+- The "run" is called, the queue of objects is processed, grouped by name, and reflection is used to automatically link up any ID's while they are inserted into the database by field name.
 
 ```Apex
 @isTest
@@ -207,13 +154,13 @@ public class exampleTest extends c_TestFactory {
     public static void setUp() {
         // Requesting a User (in this case a specical end user who works at the country level of our business) to be built with all defaults needed,  overriding the username and alias fields according the the developers options
 
-        User salesUser = (User) make(Entity.COUNTRY_USER, new User(username = 'my_special_name@user.example.com', alias = 'ctrusr')); 
+        User salesUser = (User) make(new c_TestFactoryStandardUsers.StandardUser(), new User(username = 'my_special_name@user.example.com', alias = 'ctrusr')); 
 
         // The user is then made an owner of a Sales Account, and a Sales Opportunity is created too, as a child of both.
 
-        Account customerAccount = (Account) c_Testfactory.make(Entity.SALES_ACCOUNT, new Account(Owner = salesUser));
+        Account customerAccount = (Account) c_Testfactory.make(new DemoObjects.DemoSalesAccount(), new Account(Owner = salesUser));
         
-        Opportunity customerOpty =  c_Testfactory.make(Entity.SALES_OPPORTUNITY, new Opportunity(Account = customerAccount, Name = customerAccount.name +' Test Oppty '+i));
+        Opportunity customerOpty =  c_Testfactory.make(new DemoObjects.DemoSalesOpportunity(), new Opportunity(Account = customerAccount, Name = customerAccount.name +' Test Oppty '+i));
 
         // Now the factory processes the object(s) and inserts them to the database. The factory knows the order of the objects, by following the 
         run(); 
@@ -222,19 +169,14 @@ public class exampleTest extends c_TestFactory {
     }
 }
 ```
-*Example shows the make called from a unit test. When ever the "make" methods are called, the results are added to the test factory's working memory, and when "run" is called they are committed to the database in one go in a speciffic given order defined in the Entity list. Note the Class wrapping the unit test extends c_TestFactory*
 
-## c_TestFactoryMaker
-This lean class provides an interface so that the factory can automate the building of Entities, both complex and simple.
+## c_TestFactoryObject
+This lean class provides an interface so that the factory can automate the building of data, both complex and simple.
 
-An Entity's sObjects are built using 'maker' classes, simple classes extending c_TestFactoryMaker. 
+Creat a class extending c_TestFactoryObject to provide the interface the factory needs: 
 
-To create a new Entity template:
-
-1) Create your class
-
-* Create an Apex class [Namespace][TestFactory][CollectionName] to contain your new object (or add to en existing)
-    * This will contain all your objects that are related to one another. Typically you may wish to do this per project or cloud. ex. MyNameSpace_TestFactory_SalesCloud
+* Create an Apex class [CollectionName] to contain your new object (or add to en existing)
+    * This will contain all your objects that are related to one another. Typically you may wish to do this per project or cloud. ex. MyNameSpace_SalesCloud
 * Create a class extend from c_TestFactoryMaker.
 * *For simple business object* (one sObject, no children):
     *  Define the default() method, returning an sObject with default values.
@@ -242,9 +184,7 @@ To create a new Entity template:
 ```Apex
     public class SalesAccount extends c_TestFactoryMaker {
         sObject defaults() {
-            // Default object
             Account rec = new Account();
-    
             // Default values
             rec.Name = 'A Customer Account';
             return (sObject) rec;
@@ -281,11 +221,11 @@ To create a new Entity template:
             // to create an account with a contact and an opportunity
             // Note that we dont set ANY Id's :) instead we assign the sObjects themselves. The factory class applies reflection when inserting the records to wire up the ID fields
             
-            Account customerAccount = (Account) c_Testfactory.make(Entity.SALES_ACCOUNT, (Account)sourceObject);
+            Account customerAccount = (Account) c_Testfactory.make(new DemoObjects.DemoSalesAccount(), (Account)sourceObject);
             
-            c_Testfactory.make(Entity.SALES_CONTACT, new Contact(Account = customerAccount, FirstName = contactFirstName, LastName = 'Contact '+i, Email = contactUniqueEmail));
+            c_Testfactory.make(new DemoObjects.DemoSalesContact(), new Contact(Account = customerAccount, FirstName = contactFirstName, LastName = 'Contact '+i, Email = contactUniqueEmail));
             
-            c_Testfactory.make(Entity.SALES_OPPORTUNITY, new Opportunity(Account = customerAccount, Name = customerAccount.name +' Test Oppty '+i));
+            c_Testfactory.make(new DemoObjects.DemoSalesOpportunity(), new Opportunity(Account = customerAccount, Name = customerAccount.name +' Test Oppty '+i));
             
             // Return the passed Account object as a root reference
             return (sObject) customerAccount;
@@ -293,93 +233,15 @@ To create a new Entity template:
     }
 ```
 
-3) Register it to the factory
-Edit the c_TestFactory class to register the new object. 
-
-Add the business name of the object you are templating to the "Entity" enum in c_TestFactory and map the class. 
-
-The Entity name should be a sensible, human readable name such as SALES_USER or SYSTEM_ADMIN or CUSTOMER. It doesnt need to be (shouldn't be) the name of the sObject as you may want different types of the same object depending on the business needs. 
-
-```Apex
-    public enum Entity {
-        //...The order is IMPORTANT!!! 
-        // It defines the order of the DML. 
-        // If you need one object inserted before another, 
-        // this must be reflected here.
-        ADMIN_USER
-        ,SALES_ACCOUNT
-        ,SALES_CONTACT
-        ,SALES_OPPORTUNITY
-        ,CUSTOMER // our new object goes after the atomic records we need created first
-        //...Add more here as you go...
-    }
-    
-    // Map a reference to the new class in c_TestFactory from the ENUM in the map 'makers'
-
-    public static final Map<Entity, c_TestFactoryMaker> makers = new Map<Entity, c_TestFactoryMaker> {
-            /*...Map your Entity labels to their maker class here...*/
-            // lots missed out here to save space :)
-            ,Entity.CUSTOMER  => new c_TestFactory_SalesCloud.Customer()
-            //...Add more here as you go...*/
-    };
-```
-
-## Pre existing objects for editing and reuse: c_TestFactory_CoreUsers, c_TestFactory_Users and c_TestFactory_SalesCloud
-Three example implementations of creating users and Sales Cloud objects. Objects are built using 'maker' classes, simple classes extending c_TestFactoryMaker. As their most simple (and common use), a maker class only has to provide the default values for a basic sObject. The following snipped shows how a SalesAccount is created.
-
-```Apex
-public class c_TestFactory_SalesCloud {
-    public class SalesAccount extends c_TestFactoryMaker {
-
-        // Mandatory minimum default set up, returns an sObject, in this case a default Account for the Sales Cloud
-        sObject defaults() {
-
-            // Default object
-            Account rec = new Account();
-
-            // Default values
-            rec.Name = 'A Customer Account';
-            rec.ShippingStreet = 'Nr 1 Some Street';
-            rec.ShippingPostalCode = '11111';
-            rec.ShippingCity = 'A City';
-            rec.ShippingCountry = countryName;
-
-            return (sObject) rec;
-        }
-    }
-}
-```
-
 ## Using the factory in a Unit Test
 
-### Basic use of the framework (pseudo code)
-In this example three entities SALES_USER, SALES_ACCOUNT, SALES_OPPORTUNITY have been created for use by the test method:
-```Apex
-    @isTest
-    public class c_OpportunityManager_Test extends c_TestFactory {
-        @TestSetup
-        static void setUp() { 
-            User businessUser = (User) make(Entity.SALES_USER, new User(alias = 'myalias'));
-            Account a = (Account) make(Entity.SALES_ACCOUNT, new Account(name = 'Top Level Account '));
-            Opportunity o = (Opportunity)  make(Entity.SALES_OPPORTUNITY, new Opporunity(Account = a, name = 'Opportunity name'))
-            run();
-        }
-        
-        @isTest
-        static void testCase() {
-            // query for the data inserted by setup
-            // do my tests using the businessUser to Run As
-        }
-    }
-```
+### DemoTest
+This class contains a small demo of how to build an Account hierachy, and use different features of the framework. Note that it focuses on the **TestSetUp** which is where the framework is most useful.
 
-#### Updating / Extending an existing object
+### Updating / Extending an existing object
 Often you will have additional values to add as default, like required values or expected values. 
 
-Go to the class that’s mapped in TestFactory, ex.:
-```Apex
-Entity.SALES_ACCOUNT => new c_TestFactory_SalesCloud.SalesAccount()
-```
+Go to the class ex. DemoObjects.DemoSalesAccount()
 
 Each class extends the TestFactoryMaker class, and as such contains a default method for that object. Here you can make sure the basic fields are set as you need, adding or updating as required. If it’s a complex data type with child records etc, usually editing the components the complex data type builds from is enough and you don’t need to edit the complex object itself.
 
@@ -397,24 +259,4 @@ Technically not, though it does have interfaces that mandate certain footprints 
 Cool, if it's a major refactor make a pull request... My only ask is to to try keep this simple, having boiled it down from some earlier heavy structures already.
 
 ### How can I quickly validate my Maker Classes when I write them
-Use some anonymous apex. Here's an example I wrote after creating the AdminUser maker class to test it out (note there may be limits in your org on the number of Administrator licences, so watch for the org complaining when you execute this dml).
-
-Note that as this is anon apex, there is no class to extend using c_TestFactory, so you'll see that written everywhere...
-```Apex
-    /*
-    SFDX: Execute Anonymous Apex with Currently Selected Text
-    or this:
-    SFDX: Execute Anonymous Apex with Editor Contents
-    */
-
-    System.Savepoint s = Database.setSavepoint();
-    
-    c_TestFactory.setDefaultContext();Account a = (Account) c_TestFactory.make(c_TestFactory.Entity.SALES_ACCOUNT, new Account(name = 'Top Level Account '));
-    
-    Opportunity o = (Opportunity)  c_TestFactory.make(c_TestFactory.Entity.SALES_OPPORTUNITY, new Opporunity(Account = a, ouhoiuhjoihj));
-
-    c_TestFactory.run();
-
-Database.rollback(s);
-```
-
+Some anonymous code is provided in the AnonApexForTesting folder to help you try out your work. 
