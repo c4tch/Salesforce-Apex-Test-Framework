@@ -39,6 +39,14 @@ run();
 
 #### Simple!
 
+### Outstanding issue: Class names of templates must be unique
+Becasue introspection doesnt work quite like it should in Apex, class names ignore their wrapping class, so DemoObjects.MyAccount and MyProject.MyAccount both appear to the factory as MyAccount.
+This is less than ideal and a fix may be rolled out. If using this version of the factory, just make sure your class names are unique. 
+
+EX.
+DemoObjects.DemoAccount 
+MyProject.MyAccount
+
 ### Important notice for performance
 Since API v 43, Salesforce has been seeing CPU issues with describe calls. In order to work around this, optimisations have been made to this code (you can see these in the CPU Improvement branch recently merged). Describe calls are still used however, and it is recommended that the critical update in Spring '20, "Use Improved Schema Caching" is enabled in your org.
 
