@@ -1,65 +1,17 @@
 /**
- * @File Name          : c_TestFactory_StandardUsers.cls
- * @Description        : Provides standard users to extend or inherit from
+ * @File Name          : c_TestFactoryStandardUserss.cls
+ * @Description        : Provides standard Salesforce users to extend or inherit from, including a base Test User 'UnitTestSetUpUser' for data creation 
  * @Author             : Matthew Evans
  * @Group              : 
  * @Last Modified By   : Matthew Evans
- * @Last Modified On   : 12/17/2019, 12:13:35 PM
+ * @Last Modified On   : 11/6/2020
  * @Modification Log   : 
- * Ver    Date         Author           Modification
- * 1.0    12/17/2019   Matthew Evans    Initial Version
- *   2.0         Matt Evans       8/6/2020        New model removed ENTITY references 
+ * Ver  Date          Author           Modification
+ * 1.0  12/17/2019  Matthew Evans   Initial Version
+ * 2.0  8/6/2020    Matthew Evans   New model removed ENTITY references , and new Test User 
 **/
 
-public class c_TestFactory_StandardUsers {
-    /**
-     * Get Permission Set for Test Users
-     * Allows Custom Permissions to be applied, to manage things like execution of triggers etc. 
-     * /
-    public static id dataCreationPermissionSetId {
-        get {
-            dataCreationPermissionSetId = (dataCreationPermissionSetId==null ? getDataCreationPermissionSetId() : dataCreationPermissionSetId); 
-            return dataCreationPermissionSetId;
-        } 
-        set{}
-    }
-    static id getDataCreationPermissionSetId() {
-        id permSetId = [select id from PermissionSet where name = 'c_TestFactory_DataCreation' limit 1][0].id;
-        return permSetId;
-    }
-
-    /**
-     * Test User
-     * /
-    public class TestUserPermissionSetAssignment extends c_TestFactoryObject {
-        sObject defaults() {
-            PermissionSetAssignment psa = new PermissionSetAssignment();
-            psa.PermissionSetId = dataCreationPermissionSetId;
-            return (sObject) psa;
-        }
-    }*/
-    public class UnitTestSetUpUser extends c_TestFactoryObject {
-        
-        sObject defaults() {
-            // Default object
-            User rec = new User();
-            rec.Alias = 'TestUser';
-            rec.ProfileId = profileIdByName('Test Factory Data Creator');
-            return (sObject) rec;
-        }
-        public override sObject make(sObject sourceObject) {
-            // Merge with a standard user so we dont have to repeat code
-            sObject rec = (sObject) defaults();
-            sourceObject = mergeFields(rec, sourceObject);
-            
-            // Create the user using the Standard User template
-            User u = (User) c_Testfactory.make(new StandardUser(), sourceObject); // no need to call 'add' next as the make method does this for us
-            
-            // Assign permission set
-            //c_TestFactory.make(new TestUserPermissionSetAssignment(), new PermissionSetAssignment(Assignee = u));
-            return sourceObject;
-        }
-    }
+public class c_TestFactoryStandardUsers {
 
     /**
     * Standard User 
@@ -145,6 +97,40 @@ public class c_TestFactory_StandardUsers {
             User rec = (User)(new StandardUser()).getDefaults();
             rec.ProfileId = profileIdByName('Read Only');
             return (sObject) rec;
+        }
+    }
+
+
+    /**
+    * Unit Test Set Up User - for use in @TestSetUp data creation
+    * 
+        This is a nice work around to allow tests to prevent automation (process builders, triggers and flows) from
+        firing when creating large amounts of data. 
+        The Test Factory has a profile 'Test Factory Data Creator'.
+        Attach a permission set to this and apply Custom Permissions in configurtation.
+        Then, in your automation (ex. in Process Builder check for $Permission) you can test for the 
+        custom permission in the automation you dont want to run when inserting yourt set up data.
+        This work around signifficantly reduces DML and makes it much easier to intert large volumes of data
+        and also speeds up tests signifficantly. 
+    **/
+    public class UnitTestSetUpUser extends c_TestFactoryObject {
+        
+        sObject defaults() {
+            // Default object
+            User rec = new User();
+            rec.Alias = 'TestUser';
+            rec.ProfileId = profileIdByName('Test Factory Data Creator');
+            return (sObject) rec;
+        }
+        public override sObject make(sObject sourceObject) {
+            // Merge with a standard user so we dont have to repeat code
+            sObject rec = (sObject) defaults();
+            sourceObject = mergeFields(rec, sourceObject);
+            
+            // Create the user using the Standard User template
+            User u = (User) c_Testfactory.make(new StandardUser(), sourceObject); // no need to call 'add' next as the make method does this for us
+            
+            return sourceObject;
         }
     }
     //*/

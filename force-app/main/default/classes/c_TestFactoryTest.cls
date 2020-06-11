@@ -1,5 +1,5 @@
 /**
- * @File Name          : c_TestFactory_Test.cls
+ * @File Name          : c_TestFactoryTest.cls
  * @Description        : Tests the core test factory package and automates the maker objects.
  * @Author             : Matthew Evans
  * @Group              : 
@@ -8,11 +8,11 @@
  * @Modification Log   : 
  * Ver       Date            Author      		    Modification
  * 1.0    12/17/2019   Matthew Evans     Initial Version
- *   2.0         Matt Evans       8/6/2020        New model removed ENTITY references 
+ *   2.0         Matt Evans       8/6/2020        New model removed ENTITY references. New class name.
 **/
 
 @IsTest
-public class c_TestFactory_Test {
+public class c_TestFactoryTest {
 
     /*
     Unit Tests
@@ -40,7 +40,7 @@ public class c_TestFactory_Test {
         c_TestFactory.LANGUAGE_LOCALE_KEY = c_TestFactory.LANGUAGE_LOCALE_KEY == 'FI' ? 'SV' : 'FI';
         
         // Basic test using the Core Users lib, which should follow the framework
-        User u = (User)c_TestFactory.make(new c_TestFactory_StandardUsers.StandardUser());
+        User u = (User)c_TestFactory.make(new c_TestFactoryStandardUsers.StandardUser());
         System.assertEquals(c_TestFactory.LANGUAGE_LOCALE_KEY,u.LanguageLocaleKey, 'Locale key not set on standard user');
     }
 
