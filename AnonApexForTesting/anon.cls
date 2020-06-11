@@ -3,7 +3,7 @@ System.Savepoint s = Database.setSavepoint();
 
 c_TestFactory.setDefaultContext();
 
-User testUser = (User) c_TestFactory.make(new c_TestFactory_StandardUsers.UnitTestSetUpUser());
+User testUser = (User) c_TestFactory.make(new c_TestFactoryStandardUsers.UnitTestSetUpUser());
 
 c_TestFactory.run();
 
