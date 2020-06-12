@@ -39,6 +39,14 @@ run();
 
 #### Simple!
 
+### Outstanding issue: Class names of templates must be unique
+Becasue introspection doesnt work quite like it should in Apex, class names ignore their wrapping class, so DemoObjects.MyAccount and MyProject.MyAccount both appear to the factory as MyAccount.
+This is less than ideal and a fix may be rolled out. If using this version of the factory, just make sure your class names are unique. 
+
+EX.
+DemoObjects.DemoAccount 
+MyProject.MyAccount
+
 ### Important notice for performance
 Since API v 43, Salesforce has been seeing CPU issues with describe calls. In order to work around this, optimisations have been made to this code (you can see these in the CPU Improvement branch recently merged). Describe calls are still used however, and it is recommended that the critical update in Spring '20, "Use Improved Schema Caching" is enabled in your org.
 
@@ -258,5 +266,6 @@ Technically not, though it does have interfaces that mandate certain footprints 
 ### I want to improve it and have decided to refactor the lot
 Cool, if it's a major refactor make a pull request... My only ask is to to try keep this simple, having boiled it down from some earlier heavy structures already.
 
-### How can I quickly validate my Maker Classes when I write them
+### How can I quickly validate my Maker Classes when I write t
+
 Some anonymous code is provided in the AnonApexForTesting folder to help you try out your work. 
