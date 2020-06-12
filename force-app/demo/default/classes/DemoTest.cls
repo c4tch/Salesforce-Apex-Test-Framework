@@ -2,8 +2,8 @@
  @Name: DemoTest.cls
  @TestedBy: Demos use of the Test Factory for a package
  @Description:
-  Part 1) Create some objects to be used by your package, in this case an imaginary Sales Cloud project
-  Part 2) Some demo tests (usually kept in another class) using the test objects
+  Part 1) Set Up
+  Part 2) Some demo test
  @History
   VERSION     AUTHOR           DATE            DETAIL
   1.0         Matt Evans       7/12/2018       Draft 

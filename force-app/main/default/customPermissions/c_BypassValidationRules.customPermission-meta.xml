@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomPermission xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Disables validation rules that check this permission. Apply to permission sets / groups to activate for user(s).</description>
+    <label>BypassValidationRules</label>
+</CustomPermission>

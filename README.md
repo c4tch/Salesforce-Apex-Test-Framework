@@ -266,5 +266,6 @@ Technically not, though it does have interfaces that mandate certain footprints 
 ### I want to improve it and have decided to refactor the lot
 Cool, if it's a major refactor make a pull request... My only ask is to to try keep this simple, having boiled it down from some earlier heavy structures already.
 
-### How can I quickly validate my Maker Classes when I write them
+### How can I quickly validate my Maker Classes when I write t
+
 Some anonymous code is provided in the AnonApexForTesting folder to help you try out your work. 
