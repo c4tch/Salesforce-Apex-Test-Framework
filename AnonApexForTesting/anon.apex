@@ -11,7 +11,7 @@ Account a2 = (Account) c_TestFactory.make(new DemoObjects.DemoSalesAccount(), ne
 Account a1 = (Account) c_TestFactory.make(new DemoObjects.DemoSalesAccount(), new Account(name = 'Account 1'));
 Account a3 = (Account) c_TestFactory.make(new DemoObjects.DemoSalesAccount(), new Account(name = 'Account 3'));
 
-Asset a = (Asset) c_TestFactory.make(new DemoVestasObjects.DemoAsset(), new Asset(Account = a1, Account3__r = a3, Account2__r = a2));
+Asset a = (Asset) c_TestFactory.make(new DemoObjects.DemoAsset(), new Asset(Account = a1, Account3__r = a3, Account2__r = a2));
 
 c_TestFactory.run();
 
