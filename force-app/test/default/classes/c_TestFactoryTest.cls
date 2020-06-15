@@ -40,7 +40,7 @@ public class c_TestFactoryTest {
         c_TestFactory.LANGUAGE_LOCALE_KEY = c_TestFactory.LANGUAGE_LOCALE_KEY == 'FI' ? 'SV' : 'FI';
         
         // Basic test using the Core Users lib, which should follow the framework
-        User u = (User)c_TestFactory.make(new c_TestFactoryStandardUsers.StandardUser());
+        User u = (User)c_TestFactory.make( c_TestFactoryStandardUsers.StandardUser.class );
         System.assertEquals(c_TestFactory.LANGUAGE_LOCALE_KEY,u.LanguageLocaleKey, 'Locale key not set on standard user');
     }
 
@@ -75,8 +75,8 @@ public class c_TestFactoryTest {
     @IsTest
     static void roleIdByName() {
         // I can get the ID of a role by Name
-        UserRole r = [select id,Name from UserRole limit 1];
-        System.AssertEquals(r.Id, c_TestFactoryObject.roleIdByName(r.Name),'Role ID not retreived for role "'+r.Name+'"');
+        UserRole r = [select id,DeveloperName from UserRole limit 1];
+        System.AssertEquals(r.Id, c_TestFactoryObject.roleIdByName(r.DeveloperName),'Role ID not retreived for role "'+r.DeveloperName+'"');
     }
 
     @isTest
