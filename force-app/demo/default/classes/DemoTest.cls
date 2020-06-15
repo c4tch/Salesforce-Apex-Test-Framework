@@ -28,7 +28,7 @@ public class DemoTest extends c_TestFactory {
         // prcoess builder or trigger you want to stop from firing when this user is run.
         // This work around signifficantly reduces DML and makes it much easier to intert large volumes of data
         // and also speeds up tests signifficantly.  
-        User setUpUser = (User) make(new c_TestFactoryStandardUsers.UnitTestSetUpUser());
+        User setUpUser = (User) make(c_TestFactoryStandardUsers.UnitTestSetUpUser.class);
 
         run(); 
 
@@ -45,12 +45,12 @@ public class DemoTest extends c_TestFactory {
             for (Integer i=0; i < totalParentAccounts; i++) {
 
                 // You can create an account with child objects like this. We will add some more children to these to create a complex hierachy.
-                Account a = (Account) make( new DemoObjects.DemoSalesAccount(), new Account(name = 'Top level ' + i));
-                Contact c = (Contact) make( new DemoObjects.DemoSalesContact(), new Contact(FirstName = 'George', LastName = 'Boy' + i, Account = a));
-                Opportunity o = (Opportunity) make( new DemoObjects.DemoSalesOpportunity(), new Opportunity(name='Opty ' + i, Account = a));
+                Account a = (Account) make( DemoObjects.DemoSalesAccount.class, new Account(name = 'Top level ' + i));
+                Contact c = (Contact) make( DemoObjects.DemoSalesContact.class, new Contact(FirstName = 'George', LastName = 'Boy' + i, Account = a));
+                Opportunity o = (Opportunity) make( DemoObjects.DemoSalesOpportunity.class, new Opportunity(name='Opty ' + i, Account = a));
 
                 // A simple account with nothing else (we wont make these parents)
-                Account b = (Account) make( new DemoObjects.DemoSalesAccount(), new Account(name = 'Extra Account ' + i));
+                Account b = (Account) make( DemoObjects.DemoSalesAccount.class, new Account(name = 'Extra Account ' + i));
                 
                 topLevelList.add(a);
             }
@@ -67,7 +67,7 @@ public class DemoTest extends c_TestFactory {
             for (Account topLevel : topLevelList) {
                 for (Integer i=0; i < totalCustomersPerTopAccount; i++) {
                     // To create a complex object, like a complete customer this can be done also:
-                    make(new DemoObjects.DemoCustomer(), new Account(name = topLevel.name + ' Customer ' + i, ShippingCity='City'+i, Parent = topLevel));
+                    make(DemoObjects.DemoCustomer.class, new Account(name = topLevel.name + ' Customer ' + i, ShippingCity='City'+i, Parent = topLevel));
                 }
             }
             
@@ -96,7 +96,7 @@ public class DemoTest extends c_TestFactory {
         // Set the context to the same as set up
         setDefaultContext();
 
-        Account a = (Account) make(new DemoObjects.DemoSalesAccount(), new Account(Name = 'No need to insert'));
+        Account a = (Account) make(DemoObjects.DemoSalesAccount.class, new Account(Name = 'No need to insert'));
         // No need to call run() as we just need the object shape, not database entry
         // Boolean myResult = myMethodToTest(a);
         // System.assert(myResult, 'My method failed');
