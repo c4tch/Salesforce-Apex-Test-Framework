@@ -1,9 +1,13 @@
 # A Salesforce Apex Unit Test Framework for Agile Teams (UPDATED AND REFACTORED!)
 ## Notices
 ### (8 to 15th June 2020) Major refactor :) 
-As Salesforce moves to a Package based delivery model, this framework needs to be extendable from packages that might use it as an external dependency. In order to make this change, the framework has been re-designed so that this can be packaged, and other packages can use it without having to edit the TestFactory class to update the Entity list.
+As Salesforce moves to a Package based delivery model, this framework needs to be extendable from packages that might use it as an external dependency. 
 
-Instead we do some basic reflection, and use class names/tokens like *make(MyObject.class)* instead of Entity names or calling a new xyz() method. It's very neat and actually reduces code complexity.
+In previous versions you would add a new class allong side this source like c_TestFactory_MyApp and put your objects in there. Now that we deliver this as a package, you will maybe want to write your own package using this as a dependency, in which case you'll maybe have your own objects, name space etc. To allow this to work you will not want to be editing the c_TestFactory class (which you had to do when the project used an ENTITY enum to register objects).
+
+In order to make this change, the framework has been re-designed so that this can be packaged, and other packages can use it without having to edit the TestFactory class to update the Entity list. Now, you install this package in your org, create your own test class to contain your objects (each object extends the c_TestFactoryObject interface), and in your test or test set up, call c_TestFactory.make(...) and run() to generate your sObjects. No need to get into the guts of this code any more :)
+
+Now the package performs some more reflection, and uses class names/tokens like *make(MyObject.class)* instead of Entity names or calling a new xyz() method. It's very neat and actually reduces code complexity.
 
 #### What it USED TO be:
 1) Create your Object, inheriting from c_TestFactoryMaker
@@ -28,13 +32,7 @@ run();
 
 #### Process is now
 1) Create your object, inheriting from c_TestFactoryObject. (no changes here, except for eliminating any ENTITY references).
-2) Use in your tests:
-
-sObject a = (sObject) make(myTemplateClass.class [, new sObject(my overrides)]);
-
-...
-
-run();
+2) Use in your tests: sObject a = (sObject) make(myTemplateClass.class [, new sObject(my overrides)]); *[] denotes optional*
 
 ex. 
 ```Apex
@@ -45,13 +43,12 @@ run();
 #### Simple!
 
 ## Outstanding Issues?
-ONE - Polymorphic field references in Apex can't hold sObjects, so when wiring up WhoId or WhatId on Task for example you will get errors :(
+ONE - sadly Polymorphic field references in Apex can't hold sObjects, so when wiring up WhoId or WhatId on Task for example you will get errors :(
 Test this by comparing the following two lines of code:
 ```Apex
 // If you run this in anonymous apex you wont see any errors
 Account acc = new Account(name='My account');
 Asset a = new Asset(name = 'Asset 123', Account=acc);
-
 
 // However polymorphic sObject fields behave differently
 Account acc = new Account(name='My account');
