@@ -1,28 +1,28 @@
 System.Savepoint s = Database.setSavepoint();
 
 c_TestFactory.setDefaultContext();
-
 User testUser = (User) c_TestFactory.make(new c_TestFactoryStandardUsers.UnitTestSetUpUser());
 
 c_TestFactory.run();
 
 // Test for multiple records of same type
-Account a2 = (Account) c_TestFactory.make(new DemoObjects.DemoSalesAccount(), new Account(name = 'Account 2'));
-Account a1 = (Account) c_TestFactory.make(new DemoObjects.DemoSalesAccount(), new Account(name = 'Account 1'));
-Account a3 = (Account) c_TestFactory.make(new DemoObjects.DemoSalesAccount(), new Account(name = 'Account 3'));
+Account a2 = (Account) c_TestFactory.make(DemoObjects.DemoSalesAccount.class, new Account(name = 'Account 2'));
+Account a1 = (Account) c_TestFactory.make(DemoObjects.DemoSalesAccount.class, new Account(name = 'Account 1'));
+Account a3 = (Account) c_TestFactory.make(DemoObjects.DemoSalesAccount.class, new Account(name = 'Account 3'));
 
-Asset a = (Asset) c_TestFactory.make(new DemoObjects.DemoAsset(), new Asset(Account = a1, Account3__r = a3, Account2__r = a2));
+// Test for associating multiple record of the same type to a record in the same factory transaction
+Asset a = (Asset) c_TestFactory.make(DemoObjects.DemoAsset.class, new Asset(Account = a1, Account3__r = a3, Account2__r = a2));
 
 c_TestFactory.run();
-
+System.debug('@@ Class Test result');
+System.debug(a1.Name);
+System.debug(a2.Name);
+System.debug(a3.Name);
 System.debug(a);
 System.debug(a.Account.Name);
 System.debug(a.Account2__r.Name);
 System.debug(a.Account3__r.Name);
 
-For (Asset aa : [select id,name,Account.Name,Account2__r.Name,Account3__r.Name from Asset]){
-    System.debug(aa);
-}
 
 /* / Making an account hierarchy
 // - Build Top Level Accounts
