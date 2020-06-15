@@ -27,16 +27,20 @@ Account a = (Account) make(c_TestFramework.NEW_ENTITY_NAME, new Account(name='My
 run();
 
 #### Process is now
-1) Create your object, inheriting from c_TestFactoryObject. (Note the nice name change. Note also Building objects is the same, so your templates dont need to change, except for eliminating any ENITY references as below).
-2) Use in your tests like this:
+1) Create your object, inheriting from c_TestFactoryObject. (no changes here, except for eliminating any ENTITY references).
+2) Use in your tests:
 
 sObject a = (sObject) make(myTemplateClass.class [, new sObject(my overrides)]);
+
 ...
+
 run();
 
 ex. 
+```Apex
 Account a = (Account) make(DemoObjects.DemoSalesAccount.class, new Account(name='My App Account'));
 run();
+```
 
 #### Simple!
 
