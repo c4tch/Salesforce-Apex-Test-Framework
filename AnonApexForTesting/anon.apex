@@ -1,19 +1,30 @@
 System.Savepoint s = Database.setSavepoint();
 
 c_TestFactory.setDefaultContext();
+// Test for multiple records of same type
+Account a2 = (Account) c_TestFactory.make(DemoObjects.DemoSalesAccount.class, new Account(name = 'Account 2'));
+Account a1 = (Account) c_TestFactory.make(DemoObjects.DemoSalesAccount.class, new Account(name = 'Account 1'));
+Account a3 = (Account) c_TestFactory.make(DemoObjects.DemoSalesAccount.class, new Account(name = 'Account 3'));
 
+c_TestFactory.run();
+
+System.debug(a1.Name);
+System.debug(a2.Name);
+System.debug(a3.Name);
+
+/*
 User testUser = (User) c_TestFactory.make(new c_TestFactoryStandardUsers.UnitTestSetUpUser());
 
 c_TestFactory.run();
 
 // Test for multiple records of same type
-Account a2 = (Account) c_TestFactory.make(new DemoObjects.DemoSalesAccount(), new Account(name = 'Account 2'));
-Account a1 = (Account) c_TestFactory.make(new DemoObjects.DemoSalesAccount(), new Account(name = 'Account 1'));
-Account a3 = (Account) c_TestFactory.make(new DemoObjects.DemoSalesAccount(), new Account(name = 'Account 3'));
+Account a2 = (Account) c_TestFactory.make(DemoObjects.DemoSalesAccount.class, new Account(name = 'Account 2'));
+Account a1 = (Account) c_TestFactory.make(DemoObjects.DemoSalesAccount.class, new Account(name = 'Account 1'));
+Account a3 = (Account) c_TestFactory.make(DemoObjects.DemoSalesAccount.class, new Account(name = 'Account 3'));
 
 Asset a = (Asset) c_TestFactory.make(new DemoObjects.DemoAsset(), new Asset(Account = a1, Account3__r = a3, Account2__r = a2));
 
-c_TestFactory.run();
+c_TestFactory.run();w
 
 System.debug(a);
 System.debug(a.Account.Name);

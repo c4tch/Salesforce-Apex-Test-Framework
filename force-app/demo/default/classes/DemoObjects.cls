@@ -76,7 +76,7 @@ public class DemoObjects {
         // Custom override for the maker
         public override sObject make(sObject sourceObject) {
             // Create an account
-            Account customerAccount = (Account) c_Testfactory.make(new DemoObjects.DemoSalesAccount(), (Account)sourceObject);
+            Account customerAccount = (Account) c_Testfactory.make(DemoObjects.DemoSalesAccount.class, (Account)sourceObject);
 
             // We want some unique name for the child component emails etc. so strip the account name
             String cleanNameForRelatedRecords = customerAccount.name.replaceAll('[^a-zA-Z0-9]','');
@@ -87,14 +87,14 @@ public class DemoObjects {
             {
                 String contactFirstName = customerAccount.name;
                 String contactUniqueEmail = cleanNameForRelatedRecords+'_'+i+'@donotsend.example.com';
-                c_Testfactory.make(new DemoObjects.DemoSalesContact(), new Contact(Account = customerAccount, FirstName = contactFirstName, LastName = 'Contact '+i, Email = contactUniqueEmail));
+                c_Testfactory.make(DemoObjects.DemoSalesContact.class, new Contact(Account = customerAccount, FirstName = contactFirstName, LastName = 'Contact '+i, Email = contactUniqueEmail));
             }
 
             // Create opportunties for the account and add them to the factory
             Integer opptysToCreate = 2;
             for (Integer i = 0; i<opptysToCreate; i++)
             {
-                c_Testfactory.make(new DemoObjects.DemoSalesOpportunity(), new Opportunity(Account = customerAccount, Name = customerAccount.name +' Test Oppty '+i));
+                c_Testfactory.make(DemoObjects.DemoSalesOpportunity.class, new Opportunity(Account = customerAccount, Name = customerAccount.name +' Test Oppty '+i));
             }
 
             // Return the passed Account object as a root reference
@@ -106,7 +106,7 @@ public class DemoObjects {
     public class DemoAsset extends c_TestFactoryObject {
         sObject defaults() {
             // Default object
-            Account rec = new Account();
+            Asset rec = new Asset();
 
             // Default values
             rec.Name = 'A Wind Turbine';
