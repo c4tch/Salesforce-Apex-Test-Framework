@@ -90,10 +90,9 @@ Generating data for testing a data driven platform is a massive pain, especially
 Basic approaches used by project developers include providing a set of methods that generate common data structures such as users, or Accounts - which works fine for simple environments. As projects grow, and dependencies and DML limits become an issue, developers need a consistent way to work together to save time and generate predictable data to work with to be sure they have achieved the aim of the story or requirement - test driven development, especially, demands this.
 
 ## In Use
-Using the framework is straightforward. A developer creates a default template for re-use, and then when writing tests, developers can instantiate the template, with their own overrides and have the factory commit to the database in grouped DML to reduce overhead. There is also a way to avoid firing triggers etc. if you know how to use Custom Permissions to reduce any overhead when creating Set up data.
+Using the framework is straightforward. A developer creates a default template for re-use by writrng a class that extends c_TestFactoryObject, and then when writing tests, instantiate the template (with optional overrides) and have the factory commit to the database in grouped DML to reduce overhead. 
 
-## In Use
-The following guides you through the contents of the framework in this project:
+There is also a test user and accompanying profile "UnitTestSetupUser" provided, which allows you to use a speciffic user when creating your set up data. This is a recommended way to avoid firing triggers etc. if you know how to use Custom Permissions to reduce any overhead when creating Set up data by associating custom pemrissions to your test user's profile and checking for them in your automation scripts you wish to suppress. Quite neat ;)
 
 ### Classes
 Two main classes
