@@ -1,9 +1,9 @@
 # A Salesforce Apex Unit Test Framework for Agile Teams (UPDATED AND REFACTORED!)
 ## Notices
-### (08-06-2020) Major refactor :) 
+### (8 to 15th June 2020) Major refactor :) 
 As Salesforce moves to a Package based delivery model, this framework needs to be extendable from packages that might use it as an external dependency. In order to make this change, the framework has been re-designed so that this can be packaged, and other packages can use it without having to edit the TestFactory class to update the Entity list.
 
-Instead we do some basic reflection, and use class names instead of Entity names. It's very neat and actually reduces code complexity.
+Instead we do some basic reflection, and use class names/tokens like *make(MyObject.class)* instead of Entity names or calling a new xyz() method. It's very neat and actually reduces code complexity.
 
 #### What it USED TO be:
 1) Create your Object, inheriting from c_TestFactoryMaker
@@ -30,22 +30,34 @@ run();
 1) Create your object, inheriting from c_TestFactoryObject. (Note the nice name change. Note also Building objects is the same, so your templates dont need to change, except for eliminating any ENITY references as below).
 2) Use in your tests like this:
 
-sObject a = (sObject) make(new myAppObject() [, new sObject(my overrides)]);
+sObject a = (sObject) make(myTemplateClass.class [, new sObject(my overrides)]);
+...
 run();
 
 ex. 
-Account a = (Account) make(new X_MyApp.SalesAccount(), new Account(name='My App Account'));
+Account a = (Account) make(DemoObjects.DemoSalesAccount.class, new Account(name='My App Account'));
 run();
 
 #### Simple!
 
-### Outstanding issue: Class names of templates must be unique
-Becasue introspection doesnt work quite like it should in Apex, class names ignore their wrapping class, so DemoObjects.MyAccount and MyProject.MyAccount both appear to the factory as MyAccount.
-This is less than ideal and a fix may be rolled out. If using this version of the factory, just make sure your class names are unique. 
+## Outstanding Issues?
+ONE - Polymorphic field references in Apex can't hold sObjects, so when wiring up WhoId or WhatId on Task for example you will get errors :(
+Test this by comparing the following two lines of code:
+```Apex
+// If you run this in anonymous apex you wont see any errors
+Account acc = new Account(name='My account');
+Asset a = new Asset(name = 'Asset 123', Account=acc);
 
-EX.
-DemoObjects.DemoAccount 
-MyProject.MyAccount
+
+// However polymorphic sObject fields behave differently
+Account acc = new Account(name='My account');
+Task t = new Task(name = 'Task 345', What=acc); // this will fail
+
+Account acc = new Account(name='My account');
+insert acc;
+Task t = new Task(name = 'Task 345', WhatId=acc.Id); // this will be OK
+```
+The answer is to insert (run) the factory before creating these objects. This isn't always ideal, and one could create an extension ot the FactoryObject to map these. I'd be grateful for anyone who wants to write an extension to that interface!
 
 ### Important notice for performance
 Since API v 43, Salesforce has been seeing CPU issues with describe calls. In order to work around this, optimisations have been made to this code (you can see these in the CPU Improvement branch recently merged). Describe calls are still used however, and it is recommended that the critical update in Spring '20, "Use Improved Schema Caching" is enabled in your org.
@@ -137,8 +149,8 @@ Use the "make" method to create an object from a template. You will need to know
 Note, all objects must have UNIQUE names. myDomain_Objects.Asset will get confused with anotherApp.Asset. 
 
 Create data in memory: "Make"
-- make(new myObject()) - creates a default sObject of myObject from the myObject template
-- make(new myObject(), new sObject(someField='my override'); - the fields you pass in the sObject will get used by the template and override the default values.
+- make(myObject.class) // creates a default sObject of myObject from the myObject template. Note the extension "class" passes the token for the framework to use
+- make(myObject.class, new sObject(someField='my override')); // the fields you pass in the sObject will get used by the template and override the default values.
 
 and then insert everything in memory to the database: "Run"
 - Run() - inserts everything in memory and flushes the buffer. If you dont need the data in the db, dont run this.
@@ -146,7 +158,7 @@ and then insert everything in memory to the database: "Run"
 Example. Create a user using the objects built into the provided c_TestFactoryStandardUsers class:
 
 ```Apex
-User myUser = make(new c_TestFactoryStandardUsers.UnitTestSetupUser(), new User(alias='TestUsr'));
+User myUser = make(c_TestFactoryStandardUsers.UnitTestSetupUser.class, new User(alias='TestUsr'));
 run();
 ```
 
@@ -162,13 +174,13 @@ public class exampleTest extends c_TestFactory {
     public static void setUp() {
         // Requesting a User (in this case a specical end user who works at the country level of our business) to be built with all defaults needed,  overriding the username and alias fields according the the developers options
 
-        User salesUser = (User) make(new c_TestFactoryStandardUsers.StandardUser(), new User(username = 'my_special_name@user.example.com', alias = 'ctrusr')); 
+        User salesUser = (User) make(c_TestFactoryStandardUsers.StandardUser.class, new User(username = 'my_special_name@user.example.com', alias = 'ctrusr')); 
 
         // The user is then made an owner of a Sales Account, and a Sales Opportunity is created too, as a child of both.
 
-        Account customerAccount = (Account) c_Testfactory.make(new DemoObjects.DemoSalesAccount(), new Account(Owner = salesUser));
+        Account customerAccount = (Account) c_Testfactory.make(DemoObjects.DemoSalesAccount.class, new Account(Owner = salesUser));
         
-        Opportunity customerOpty =  c_Testfactory.make(new DemoObjects.DemoSalesOpportunity(), new Opportunity(Account = customerAccount, Name = customerAccount.name +' Test Oppty '+i));
+        Opportunity customerOpty =  c_Testfactory.make(DemoObjects.DemoSalesOpportunity.class, new Opportunity(Account = customerAccount, Name = customerAccount.name +' Test Oppty '+i));
 
         // Now the factory processes the object(s) and inserts them to the database. The factory knows the order of the objects, by following the 
         run(); 
@@ -229,11 +241,11 @@ Creat a class extending c_TestFactoryObject to provide the interface the factory
             // to create an account with a contact and an opportunity
             // Note that we dont set ANY Id's :) instead we assign the sObjects themselves. The factory class applies reflection when inserting the records to wire up the ID fields
             
-            Account customerAccount = (Account) c_Testfactory.make(new DemoObjects.DemoSalesAccount(), (Account)sourceObject);
+            Account customerAccount = (Account) c_Testfactory.make(DemoObjects.DemoSalesAccount.class, (Account)sourceObject);
             
             c_Testfactory.make(new DemoObjects.DemoSalesContact(), new Contact(Account = customerAccount, FirstName = contactFirstName, LastName = 'Contact '+i, Email = contactUniqueEmail));
             
-            c_Testfactory.make(new DemoObjects.DemoSalesOpportunity(), new Opportunity(Account = customerAccount, Name = customerAccount.name +' Test Oppty '+i));
+            c_Testfactory.make(DemoObjects.DemoSalesOpportunity.class, new Opportunity(Account = customerAccount, Name = customerAccount.name +' Test Oppty '+i));
             
             // Return the passed Account object as a root reference
             return (sObject) customerAccount;
@@ -249,7 +261,7 @@ This class contains a small demo of how to build an Account hierachy, and use di
 ### Updating / Extending an existing object
 Often you will have additional values to add as default, like required values or expected values. 
 
-Go to the class ex. DemoObjects.DemoSalesAccount()
+Go to the class ex. DemoObjects.DemoSalesAccount
 
 Each class extends the TestFactoryMaker class, and as such contains a default method for that object. Here you can make sure the basic fields are set as you need, adding or updating as required. If it’s a complex data type with child records etc, usually editing the components the complex data type builds from is enough and you don’t need to edit the complex object itself.
 
