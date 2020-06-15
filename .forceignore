@@ -1,3 +1,7 @@
 **/jsconfig.json
 
 **/.eslintrc.json
+
+# Ignore the Anon and Demo folders
+anon/
+demo/
