@@ -79,7 +79,7 @@ public class c_TestFactoryStandardUsers {
             // Use the admin defaults and merge them with a standard user so we dont have to repeat code
             sObject rec = (sObject) defaults();
             sourceObject = mergeFields(rec, sourceObject);
-            c_Testfactory.make(new StandardUser(), sourceObject); // no need to call 'add' next as the make method does this for us
+            c_Testfactory.make(StandardUser.class, sourceObject); // no need to call 'add' next as the make method does this for us
             return sourceObject;
         }
     }
@@ -128,7 +128,7 @@ public class c_TestFactoryStandardUsers {
             sourceObject = mergeFields(rec, sourceObject);
             
             // Create the user using the Standard User template
-            User u = (User) c_Testfactory.make(new StandardUser(), sourceObject); // no need to call 'add' next as the make method does this for us
+            User u = (User) c_Testfactory.make(StandardUser.class, sourceObject); // no need to call 'add' next as the make method does this for us
             
             return sourceObject;
         }

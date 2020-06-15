@@ -143,25 +143,32 @@ public virtual class c_TestFactory {
     **/
 
     // Track the components  built
-    static Map<String, c_TestFactoryObject> objectsByType = new Map<String, c_TestFactoryObject>();
-    static List<String> objectOrder = new List<String>(); //Keep the order of the Map managed as FIFO (as Maps are unordered by definition)
+    static Map<Type, c_TestFactoryObject> objectsByType = new Map<Type, c_TestFactoryObject>();
+    static List<Type> objectOrder = new List<Type>(); //Keep the order of the Map managed as FIFO (as Maps are unordered by definition)
 
     // Method "MAKE" / tell the factory to build an object of a certain type
-    public static sObject make(c_TestFactoryObject businessObjectToCreate) {
-        return make(businessObjectToCreate, null);
+    public static sObject make(Type templateClass) {
+        return make(templateClass, null);
     }
 
-    // Method "MAKE" with sObject to use with initial values, ex. new Account(Name = "My Test Account Name")
-    public static sObject make(c_TestFactoryObject businessObjectToCreate, sObject sourceObject) {
-        String businessObjectName = String.valueOf(businessObjectToCreate).substring(0,String.valueOf(businessObjectToCreate).indexOf(':'));
+    // Method "MAKE" / index the objects by type and run the make() method on the interface
+    public static sObject make(Type templateClass, sObject sourceObject) {
+        c_TestFactoryObject businessObject;
 
-        if (!objectsByType.containsKey(businessObjectName)) {
-            objectOrder.add(businessObjectName);
-            objectsByType.put(businessObjectName, businessObjectToCreate);
+        if (!objectsByType.containsKey(templateClass)) {
+            businessObject = (c_TestFactoryObject) templateClass.newInstance();
+            objectOrder.add(templateClass);
+            objectsByType.put(templateClass, businessObject);
+        } else {
+            businessObject = objectsByType.get(templateClass);
         }
 
-        c_TestFactoryObject businessObject = objectsByType.get(businessObjectName);
         return businessObject.make(sourceObject);
+    }
+
+    // Get list of sObjects by type
+    public static sObject[] getSObjects(Type objectType) {
+        return objectsByType.get(objectType).get();
     }
 
     /**
@@ -187,10 +194,10 @@ public virtual class c_TestFactory {
     // Method "RUN" with overload option
     // - Create each set of business objects in order the objects are initially created
     public static void run(Boolean clearObjects) {
-        for (String businessObjectToCreate : objectOrder) {
-            System.Debug(LoggingLevel.INFO,'@@ Create TYPE '+businessObjectToCreate+ ' size '+objectsByType.get(businessObjectToCreate).get().size());
-            if (objectsByType.get(businessObjectToCreate).get().size()>0) {
-                createEntity(businessObjectToCreate, clearObjects);
+        for (Type objectType : objectOrder) {
+            System.Debug(LoggingLevel.INFO,'@@ Create TYPE '+objectType+ ' size '+objectsByType.get(objectType).get().size());
+            if (objectsByType.get(objectType).get().size()>0) {
+                createEntity(objectType, clearObjects);
             }
         }
     }
@@ -200,21 +207,23 @@ public virtual class c_TestFactory {
     //  - For composite objects ensure mixed sObject types are ordered so that parents precede children
     //  - Ex. Pseudo code: [Account 1 followed by the account's Contacts 1,2,3,4; then Account 2 and child Contacts 6,7,8; then Cases; etc.]
 
-    static void createEntity(String businessObjectToCreate, Boolean clearObjects) {
-        System.debug(LoggingLevel.INFO,'@@ START: Test Factory Create Type '+ businessObjectToCreate +' : clear objects:'+clearObjects+'@@');
+    static void createEntity(Type objectType, Boolean clearObjects) {
+        System.debug(LoggingLevel.INFO,'@@ START: Test Factory Create Type '+ objectType +' : clear objects:'+clearObjects+'@@');
         System.debug(LoggingLevel.INFO,'@@ CPU time '+System.Limits.getCpuTime());
 
         // Compile all the sObjects created by the Business Object's maker class
         // - These where generated every time the 'make' method was run.
         sObject[] objs = new List<sObject>();
-        objs.addAll(objectsByType.get(businessObjectToCreate).get());
+        objs.addAll(objectsByType.get(objectType).get());
 
         // Upsert the sobject lists in order, allowing for ID's and external ID's to be created in each transaction
         // - DML should not be in a loop ;) however it is limited by TYPE and therefore this will not be called more than the number of sObject types being created
         // - The ambition of the framework is to REDUCE the amount of DML used creating objects.
         List<String> createOrder = new List<String>();
+
         Map<String, sObject[]> collections_INSERT = new map<String, sObject[]>();
         Map<String, sObject[]> collections_UPDATE = new map<String, sObject[]>();
+
         sortAndLinkSObjects(objs, createOrder, collections_INSERT, collections_UPDATE);
 
         for (String name : createOrder) {
@@ -228,10 +237,10 @@ public virtual class c_TestFactory {
 
         // Clear the list of sObject records on the Business Object
         if (clearObjects) {
-            objectsByType.get(businessObjectToCreate).clear();
+            objectsByType.get(objectType).clear();
         }
 
-        System.debug(LoggingLevel.INFO,'@@ END: Test Factory Create Type '+ businessObjectToCreate +' @@');
+        System.debug(LoggingLevel.INFO,'@@ END: Test Factory Create Type '+ objectType +' @@');
     }
 
 
@@ -243,16 +252,16 @@ public virtual class c_TestFactory {
 
     // Map relational fields 
     // - Map example for Asset with several relationship fields of the same type: Asset => [Account1__c => Account1__r, Account2__c => Account2__r etc.]
-    static Map<String, Map<String, String>> objectRelationalFieldMap = new Map<String, Map<String, String>>();
+    static Map<SObjectType, Map<String, String>> objectRelationalFieldMap = new Map<SObjectType, Map<String, String>>();
     static Map<String, String> setRelationalFieldMap(sObject o) {
-        String objectName = String.valueOf(o.getSObjectType());
+        SObjectType sObjectType = o.getSObjectType();
 
         // Check we need to build the map for this object
-        if (!objectRelationalFieldMap.containsKey(objectName)) {
+        if (!objectRelationalFieldMap.containsKey(sObjectType)) {
             
             // Get the field name and the relational field name ex. field with name "AccountId" on Contact has relationalfield name "Account"
             Map<String, String> fieldNameToRelationshipName = new Map<String,String>();
-            DescribeSObjectResult res = o.getSObjectType().getDescribe();
+            DescribeSObjectResult res = sObjectType.getDescribe();
                 
             // Field info to cache
             for(Schema.SobjectField f : res.fields.getMap().Values()) {    
@@ -267,12 +276,12 @@ public virtual class c_TestFactory {
             }
             
             // Store only necessary fields in the map
-            objectRelationalFieldMap.put(objectName, fieldNameToRelationshipName); 
+            objectRelationalFieldMap.put(sObjectType, fieldNameToRelationshipName); 
         }
-        return objectRelationalFieldMap.get(objectName);
+        return objectRelationalFieldMap.get(sObjectType);
     }
-    static Map<String, String> getRelationalFieldMap(String objectName) {
-        return objectRelationalFieldMap.get(objectName);
+    static Map<String, String> getRelationalFieldMap(SObjectType sObjectType) {
+        return objectRelationalFieldMap.get(sObjectType);
     }
 
     // Sort the list of sobject record by Type, in order of discovery (FIFO) into Insert or Update, and also attempts to create relationships to existing entities with ID's
@@ -291,21 +300,21 @@ public virtual class c_TestFactory {
             // While looping over each record, we will inspect the relationship fields to dynamically assign ID's from any sObject
             // that the template joined (Ex. assign an AccoutId from an sObject on the Account field on Contact, or a __r reference)
             // This allows us to set sObjects to be assigned to reference fields when building out composite objects
-            String objectName = String.valueOf(o.getSObjectType());
-            Map<String,String> relationalFieldMap = getRelationalFieldMap(objectName);
+            SObjectType objectType = o.getSObjectType();
+            Map<String,String> relationalFieldMap = getRelationalFieldMap(objectType);
             if (relationalFieldMap!=null) {
                 for(String fieldName : relationalFieldMap.keySet()) {
                     String relationshipName = relationalFieldMap.get(fieldName);
                     sObject relationshipObj = o.getSObject(relationshipName);
                     if (relationshipObj!=null && relationshipObj.id!=null) {
-                        // System.debug(LoggingLevel.INFO, '@@ Sobject in Relationship field '+relationshipName+' is assigning ' + fieldName+' with value '+relationshipObj.id);
+                        System.debug(LoggingLevel.INFO, '@@ Sobject in Relationship field '+relationshipName+' is assigning ' + fieldName+' with value '+relationshipObj.id);
                         o.put(fieldName,relationshipObj.id);
                     }
                 }
             }
             
             // Now sort the records into UPDATE or INSERT DML, storing with object name as key
-            String name = o.getSObjectType().getDescribe().getName();
+            String name = objectType.getDescribe().getName();
             if (o.get('Id')!=null)
             {
                 if (!collections_UPDATE.containsKey(name)) {
