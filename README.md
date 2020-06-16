@@ -1,34 +1,14 @@
 # A Salesforce Apex Unit Test Framework for Agile Teams (UPDATED AND REFACTORED!)
 ## Notices
 ### (8 to 15th June 2020) Major refactor :) 
-As Salesforce moves to a Package based delivery model, this framework needs to be extendable from packages that might use it as an external dependency. 
+As Salesforce moves to a Package based delivery model, this framework needed to be extendable from external packages. You can package this code (or deploy as is), and write your own Objects in your own package (or namespace) without needing to open or edit this code any longer.
 
-In previous versions you would add a new class allong side this source like c_TestFactory_MyApp and put your objects in there. Now that we deliver this as a package, you will maybe want to write your own package using this as a dependency, in which case you'll maybe have your own objects, name space etc. To allow this to work you will not want to be editing the c_TestFactory class (which you had to do when the project used an ENTITY enum to register objects).
 
-In order to make this change, the framework has been re-designed so that this can be packaged, and other packages can use it without having to edit the TestFactory class to update the Entity list. Now, you install this package in your org, create your own test class to contain your objects (each object extends the c_TestFactoryObject interface), and in your test or test set up, call c_TestFactory.make(...) and run() to generate your sObjects. No need to get into the guts of this code any more :)
+In previous versions you would add a new class, and then update the c_TestFactory class to register it as an Entity in an enum before you could generate data from it using the factory. This dependency has been removed.
 
-Now the package performs some more reflection, and uses class names/tokens like *make(MyObject.class)* instead of Entity names or calling a new xyz() method. It's very neat and actually reduces code complexity.
 
-#### What it USED TO be:
-1) Create your Object, inheriting from c_TestFactoryMaker
-2) Update Test Framework Entity and a pointer to the method like this:
+When you create a class (extending the c_TestFactoryObject interface), and create data from it in your test (*c_TestFactory.make(MyObject.class)* and *run()* to generate your sObjects and insert them) the factory performs some reflection, and uses the class token *MyObject.class* passed instead and generates the instance for you. It also pays attention to the order you create your objects, so if you create a User then an Account then another User, the DML insert order will be User (list of) and then Account. It's very neat and actually reduces code complexity.
 
-c_TestFramework {
-    ...
-        Entity {
-            ...
-            NEW_ENTITY_NAME
-            ...
-        }
-    ...
-}
-
-3) Commit your changes to the  org, test the link is correct
-
-4) Use in your tests like this:
-
-Account a = (Account) make(c_TestFramework.NEW_ENTITY_NAME, new Account(name='My App Account'));
-run();
 
 #### Process is now
 1) Create your object, inheriting from c_TestFactoryObject. (no changes here, except for eliminating any ENTITY references).
@@ -39,6 +19,12 @@ ex.
 Account a = (Account) make(DemoObjects.DemoSalesAccount.class, new Account(name='My App Account'));
 run();
 ```
+
+**You can still use your old templates with minor updates. If you have overriden any make() methods on your templates, note the new syntax for calling this method has changed:**
+
+Old: c_TestFactory.make( **c_Testfactory.MYOBJECT_ENTITY**, new sObject(values));
+
+New: c_TestFactory.make( myObject**.class**, new sObject(values));
 
 #### Simple!
 
@@ -52,7 +38,7 @@ Asset a = new Asset(name = 'Asset 123', Account=acc);
 
 // However polymorphic sObject fields behave differently
 Account acc = new Account(name='My account');
-Task t = new Task(name = 'Task 345', What=acc); // this will fail
+Task t = new Task(name = 'Task 345', What=acc); // this won't even compile!
 
 Account acc = new Account(name='My account');
 insert acc;
