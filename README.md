@@ -24,7 +24,7 @@ run();
 
 Old: c_TestFactory.make( **c_Testfactory.MYOBJECT_ENTITY**, new sObject(values));
 
-New: c_TestFactory.make( myObject**.class**, new sObject(values));
+New: c_TestFactory.make( **myObject.class**, new sObject(values)); // note the mandatory .class extention denoting a Type
 
 #### Simple!
 
