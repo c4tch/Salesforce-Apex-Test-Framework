@@ -12,7 +12,9 @@ When you create a class (extending the c_TestFactoryObject interface), and creat
 
 #### Process is now
 1) Create your object, inheriting from c_TestFactoryObject. (no changes here, except for eliminating any ENTITY references).
-2) Use in your tests: sObject a = (sObject) make(myTemplateClass.class [, new sObject(my overrides)]); *[] denotes optional*
+2) Use in your tests: sObject a = (sObject) make(myTemplateClass.class [, new sObject(my overrides)]); 
+
+*[] denotes optional*
 
 ex. 
 ```Apex
@@ -27,6 +29,24 @@ Old: c_TestFactory.make( **c_Testfactory.MYOBJECT_ENTITY**, new sObject(values))
 New: c_TestFactory.make( **myObject.class**, new sObject(values)); // note the mandatory .class extention denoting a Type
 
 #### Simple!
+
+### A new Profile for automation bypass
+When inserting test data, sometimes it can help to not fire any triggers or workflow rules. This framework includes a way to do this, but needs some config and code to connect it together.
+
+
+In c_TestFactoryStandardUsers you will see **UnitTestSetupUser**, which has a profile **Test Factory Data Creator**. The idea is to **create some Custom Permissions, like "ByPass Automation"** for example, and apply these to the Profile in Setup. Once you have this, edit the entry criteria for your triggers, validation rules, process builders etc. to check for this custom permission, and exit if it is present.
+
+
+If you create a **UnitTestSetupUser** and use it in your @TestSetup methods, you will now find that your automation is neatly bypassed and your data inserted "as is". This will speed up the time for running tests massively. It may not be ideal in all situations, however when generating bulk test data it can be a very good idea if you are not testing automation at the same time.
+
+
+To check for custom permissions in formula use this: $Permision.Custom_Permission_API_Name
+
+In code: Boolean hasCustomPermission = FeatureManagement. checkPermission(' your_custom_permission_api_name ');
+
+
+If you have any problems with the profile contained in this package, consider removing it and re-creating it (with the same name) by cloning from a System Admin profile. By using the same name, the framework should still pick it up.
+
 
 ## Outstanding Issues?
 ONE - sadly Polymorphic field references in Apex can't hold sObjects, so when wiring up WhoId or WhatId on Task for example you will get errors :(
@@ -50,6 +70,7 @@ The answer is to insert (run) the factory before creating these objects. This is
 Since API v 43, Salesforce has been seeing CPU issues with describe calls. In order to work around this, optimisations have been made to this code (you can see these in the CPU Improvement branch recently merged). Describe calls are still used however, and it is recommended that the critical update in Spring '20, "Use Improved Schema Caching" is enabled in your org.
 
 More information can be found in this KB  article: https://success.salesforce.com/issues_view?id=a1p3A000001RXBZQA4&title=sobjecttype-getdescribe-and-sobjectfield-getdescribe-increase-apex-cpu-consumption-in-api-version-44
+
 
 ## About
 This project provides a test framework for for Apex unit tests on the Salesforce lightning platform. The framework provides a scaffold for automating and reusing test data to make the development lifecycle more predictable and efficient. 
