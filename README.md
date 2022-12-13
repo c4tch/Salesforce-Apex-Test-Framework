@@ -11,7 +11,7 @@ When you create a class (extending the c_TestFactoryObject interface), and creat
 
 
 #### Process is now
-1) Create your object, inheriting from c_TestFactoryObject. (no changes here, except for eliminating any ENTITY references).
+1) Create your Class object, inheriting from c_TestFactoryObject.class to wire up the framework methods (no changes here, except for eliminating any ENTITY references)
 2) Use in your tests: sObject a = (sObject) make(myTemplateClass.class [, new sObject(my overrides)]); 
 
 *[] denotes optional*
@@ -101,23 +101,39 @@ Using the framework is straightforward. A developer creates a default template f
 
 There is also a test user and accompanying profile "UnitTestSetupUser" provided, which allows you to use a speciffic user when creating your set up data. This is a recommended way to avoid firing triggers etc. if you know how to use Custom Permissions to reduce any overhead when creating Set up data by associating custom pemrissions to your test user's profile and checking for them in your automation scripts you wish to suppress. Quite neat ;)
 
-### Classes
-Two main classes
-
+### About the factory
+Contents
 1) The main factory class c_TestFactory
 2) and an Object class c_TestFactoryObject
 
-c_TestFactory is used to generate data for tests
-c_TestFactoryObject is used as the boilerplate for creating object templates
+c_TestFactory -> is used IN YOUR TESTS to generate data
+c_TestFactoryObject -> provides all the automation methods and means to connect your test objects to the Test Factory
 
 Some example classes have been provided in the Demo folder, and also the c_TestFactorySatandardUsers class has some nice examples of how to perform inherritance, if thats what you want. (Ie reuse of one template by another).
 
+## Creating test data from templates
+This is the main job of the framework. You design your business objects in classes, for example a template for "A New Customer" and another for "A Complaint Customer" - they may be the same sObject but with very different values, record types etc. You can even create compound objects (parent - child(ren)), where your class automates the mass generation of multiple records - pretty useful when testing for Bulk scenarios.
 
-## c_TestFactory 
-Does three jobs:
-1. Manage Test Context (country, language etc.)
-2. Generate data from templates
-3. Register and insert the generated data to the database
+To create a template, a class is written that inherrits from c_TestFactoryObject - this inherritance allows the factory to automate generation of objects using the template when run.
+
+```Apex
+    public class SalesAccount extends c_TestFactoryMaker { // wire up the object to the factory
+        sObject defaults() { // define the default values your object should have
+            Account rec = new Account(); // the record you want to return for insertion into the DB
+            // Default values
+            rec.Name = 'A Customer Account'; // default values
+            return (sObject) rec;
+        }
+    }
+```
+
+Below is a more idepth look at how this works. First I'll run through the Test Factory Class so you can see how the templates generate data, and then there is a more indepth look at generation of records and writing complex business objects.
+
+
+## Running the factory: c_TestFactory 
+Does two jobs:
+1. Manages the context of your Test data (country, language etc.)
+2. Automates the generatation of data from templates as speciffied by your test
 
 #### 1. Test Context
 Good tests run in a consistent context, ie predictable values such as language, country, email encoding formats, data volumes. This ensures that you are able to vary the context of the tests being run in a predictable way, both as a developer and a tester.
@@ -140,7 +156,6 @@ In this table you create a context with the following fields that are looked up 
 The test factory will use the most recently created row marked *Active* and store these in static fields (so that you can override them as needed).
 
 #### 2.Generate data from templates
-Extend the factory in your Test to allow access to it's methods. Thisn is optional as you can also enter "c_TestFactory" everywhere, this just simplifies your code a little:
 
 @IsTest
 public class DemoTest extends c_TestFactory {
@@ -151,6 +166,8 @@ public class DemoTest extends c_TestFactory {
     @TestSetup
     static void demoTestSetUp(){
         ...
+
+(Note: extends c_TestFactory just simplifies your code, to avoid writing c_TestFactory.somemethod() everywhere)
 
 Use the "make" method to create an object from a template. You will need to know what object you are creating!
 Note, all objects must have UNIQUE names. myDomain_Objects.Asset will get confused with anotherApp.Asset. 
